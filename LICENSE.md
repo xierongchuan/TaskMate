@@ -1,59 +1,51 @@
-# 🛡️ Proprietary Software License  
+# 🛡️ Strict Proprietary Software License  
 **For TaskMate**
 
-This Proprietary Software License is made between **Tulenov Temur Pulatovich**, an individual ("Licensor"), and any person or entity who installs or uses the software ("Licensee").  
-By installing, copying, or using **TaskMate** ("Software"), you agree to the terms below.
+This software and its source code, documentation, and all associated files (collectively, the "Software") are the sole property of **Tulenov Temur Pulatovich**, an individual ("Licensor").
 
 ---
 
-## 1. License Grant  
-The Licensor grants the Licensee a **non-exclusive**, **non-transferable**, and **revocable** license to use the Software and its documentation solely for **personal or internal business use**.
+## 1. No License Granted
 
-You are **not permitted** to:
-- distribute the Software to others,
-- sublicense it,
-- modify or create derivative works,
-- reverse engineer or decompile any part of it,  
+**No rights or licenses** are granted to any person or entity to use, copy, install, run, modify, distribute, sublicense, or otherwise interact with the Software in any way.
 
-**unless you receive prior written permission from the Licensor.**
+**Any access to or use of the Software is strictly prohibited** without the **prior written consent** of the Licensor.
 
 ---
 
-## 2. Ownership  
-All rights, title, and interest in and to the Software, including but not limited to the source code, compiled binaries, and documentation, remain with the Licensor.  
-This license does **not** transfer any intellectual property rights to the Licensee.
+## 2. Ownership
+
+The Licensor retains full and exclusive ownership of all intellectual property rights in the Software.  
+This includes but is not limited to source code, binaries, APIs, documentation, and all derivative works.
+
+No part of the Software may be considered public domain, open source, or freely available under any circumstances.
 
 ---
 
-## 3. Unauthorized Use  
-Any use of the Software outside the scope defined in this license — including redistribution, modification, or commercial use —  
-is **strictly prohibited without prior written approval** from the Licensor.
+## 3. Unauthorized Use
+
+Any use, access, duplication, modification, reverse engineering, or distribution of the Software without prior written authorization from the Licensor constitutes an infringement of intellectual property rights and may lead to legal action.
 
 ---
 
-## 4. Termination  
-This license is effective until terminated.  
-The Licensor may terminate this license at any time if the Licensee fails to comply with any of its terms.  
-Upon termination, the Licensee must stop using the Software and delete all copies.
+## 4. No Warranty
+
+The Software is provided **"as is"**, without any warranties, express or implied.  
+The Licensor does not guarantee functionality, reliability, or compatibility for any purpose.
 
 ---
 
-## 5. Disclaimer of Warranty  
-The Software is provided **"as is"**, without any warranties of any kind.  
-The Licensor makes **no guarantees** regarding performance, compatibility, or fitness for any particular purpose.
+## 5. Limitation of Liability
+
+To the maximum extent permitted by law, the Licensor shall not be held liable for any damages resulting from unauthorized access to or use of the Software.
 
 ---
 
-## 6. Limitation of Liability  
-To the fullest extent permitted by applicable law, the Licensor shall not be liable for any damages arising from the use or inability to use the Software,  
-including but not limited to data loss, system failure, or business interruption.
+## 6. Governing Law
+
+This agreement is governed by the laws of the **Republic of Uzbekistan**, and/or international intellectual property law.  
+Any legal dispute shall be resolved in the courts of the Licensor’s jurisdiction, unless otherwise agreed in writing.
 
 ---
 
-## 7. Governing Law  
-This license is governed by the laws of the **country or jurisdiction where the Licensee resides**, unless otherwise required by international law.  
-Any disputes will be resolved in accordance with internationally recognized principles of contract law.
-
----
-
-**By using TaskMate, you acknowledge that you have read, understood, and agreed to these terms.**
+**Any use of TaskMate without explicit written permission is a violation of this license. All rights reserved.**
