@@ -55,6 +55,7 @@ services:
         env_file:
             - ./.env
         environment:
+            DB_CONNECTION: ${DB_CONNECTION}
             DB_HOST: ${DB_HOST}
             DB_PORT: ${DB_PORT}
             DB_DATABASE: ${DB_DATABASE_LARAVEL}
@@ -78,6 +79,7 @@ services:
         env_file:
             - ./.env
         environment:
+            DB_CONNECTION: ${DB_CONNECTION}
             DB_HOST: ${DB_HOST}
             DB_PORT: ${DB_PORT}
             DB_DATABASE: ${DB_DATABASE_TELEGRAM_BOT}
