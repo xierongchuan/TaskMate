@@ -27,7 +27,7 @@ services:
             - ./init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh:ro
         ports:
             - "5432:5432"
-    
+
     # pgAdmin 4 для управления PostgreSQL
     pgadmin:
         image: dpage/pgadmin4:latest
@@ -39,7 +39,7 @@ services:
             PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
             PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
         ports:
-            - "8080:80"
+            - "8081:80"
         volumes:
             - pgadmin_data:/var/lib/pgadmin
         depends_on:
@@ -78,6 +78,8 @@ services:
         restart: on-failure:3
         env_file:
             - ./.env
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
         environment:
             DB_CONNECTION: ${DB_CONNECTION}
             DB_HOST: ${DB_HOST}
@@ -85,6 +87,8 @@ services:
             DB_DATABASE: ${DB_DATABASE_TELEGRAM_BOT}
             DB_USER: ${DB_USERNAME}
             DB_PASSWORD: ${DB_PASSWORD}
+            VCRM_API_URL: ${VCRM_API_URL}
+            VCRM_API_TOKEN: ${VCRM_API_TOKEN}
         volumes:
             - ./TaskMateTelegramBot/:/var/www/src_telegram_bot_api
             - ./TaskMateTelegramBot/.env:/var/www/src_telegram_bot_api/.env
