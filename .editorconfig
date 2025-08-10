@@ -1,0 +1,49 @@
+# EditorConfig помогает унифицировать стиль кода между редакторами и IDE
+
+root = true
+
+# Общие настройки для всех файлов
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Настройки для PHP файлов
+[*.php]
+indent_style = space
+indent_size = 4
+tab_width = 4
+max_line_length = 120
+insert_final_newline = true
+
+# Удаляет пробелы в конце строк
+trim_trailing_whitespace = true
+
+# Убедимся, что у нас один пустой перенос в конце каждого PHP-файла
+insert_final_newline = true
+
+# Для файлов конфигурации (json)
+[*.{json}]
+indent_style = space
+indent_size = 2
+
+# Для файлов конфигурации (Yaml)
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 4
+
+# Для .env и текстовых файлов
+[*.{env,txt,md}]
+end_of_line = lf
+trim_trailing_whitespace = false
+
+# Для файлов миграций, bash и пр.
+[*.{sh,sql}]
+indent_style = space
+indent_size = 4
+
+# Исключения — не применять к минифицированным файлам
+[*.min.js]
+insert_final_newline = false
+trim_trailing_whitespace = false
