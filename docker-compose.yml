@@ -11,6 +11,8 @@ services:
             - "6379:6379"
         volumes:
             - valkey_data:/data
+            - ./valkey.conf:/etc/valkey/valkey.conf:ro
+        command: ["valkey-server", "/etc/valkey/valkey.conf"]
 
     # PostgreSQL для основного хранения данных
     postgres:
