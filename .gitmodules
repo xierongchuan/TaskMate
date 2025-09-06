@@ -10,3 +10,6 @@
 [submodule "TaskMateAPI"]
 	path = TaskMateAPI
 	url = https://github.com/xierongchuan/TaskMateAPI.git
+[submodule "VanillaFlowTelegramBot"]
+	path = VanillaFlowTelegramBot
+	url = https://github.com/xierongchuan/VanillaFlowTelegramBot.git
