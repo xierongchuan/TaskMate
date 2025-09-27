@@ -57,6 +57,7 @@ services:
         env_file:
             - ./.env
         environment:
+            APP_KEY: ${LARAVEL_APP_KEY}
             DB_CONNECTION: ${DB_CONNECTION}
             DB_HOST: ${DB_HOST}
             DB_PORT: ${DB_PORT}
@@ -83,6 +84,7 @@ services:
         extra_hosts:
             - "host.docker.internal:host-gateway"
         environment:
+            APP_KEY: ${TASK_MATE_TELEGRAM_BOT_APP_KEY}
             DB_CONNECTION: ${DB_CONNECTION}
             DB_HOST: ${DB_HOST}
             DB_PORT: ${DB_PORT}
@@ -113,6 +115,7 @@ services:
         extra_hosts:
             - "host.docker.internal:host-gateway"
         environment:
+            APP_KEY: ${VANILLA_FLOW_TELEGRAM_BOT_APP_KEY}
             DB_CONNECTION: ${DB_CONNECTION}
             DB_HOST: ${DB_HOST}
             DB_PORT: ${DB_PORT}
