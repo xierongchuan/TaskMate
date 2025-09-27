@@ -1,24 +1,25 @@
-version: '3.9'
+version: "3.9"
 
 services:
-
-    # Valkey для очередей и кеша
+    # Valkey (redis-like)
     valkey:
         image: valkey/valkey:latest
         container_name: taskmate_valkey
-        restart: on-failure:3
+        restart: "on-failure:3"
         ports:
-            - "6379:6379"
+            - "6379:6379" # можно убрать, если не нужен доступ с хоста
         volumes:
             - valkey_data:/data
             - ./valkey.conf:/etc/valkey/valkey.conf:ro
         command: ["valkey-server", "/etc/valkey/valkey.conf"]
+        networks:
+            - web
 
-    # PostgreSQL для основного хранения данных
+    # Postgres
     postgres:
-        image: postgres:latest
+        image: postgres:18
         container_name: taskmate_postgres
-        restart: on-failure:3
+        restart: "on-failure:3"
         env_file:
             - ./.env
         environment:
@@ -28,13 +29,14 @@ services:
             - postgres_data:/var/lib/postgresql/data
             - ./init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh:ro
         ports:
-            - "5432:5432"
+            - "5432:5432" # можно убрать при желании
+        networks:
+            - web
 
-    # pgAdmin 4 для управления PostgreSQL
     pgadmin:
         image: dpage/pgadmin4:latest
         container_name: taskmate_pgadmin
-        restart: on-failure:3
+        restart: "on-failure:3"
         env_file:
             - ./.env
         environment:
@@ -46,14 +48,16 @@ services:
             - pgadmin_data:/var/lib/pgadmin
         depends_on:
             - postgres
+        networks:
+            - web
 
-    # PHP-FPM для обработки PHP Laravel API
+    # Laravel PHP-FPM (официальный образ, без кастомного Dockerfile)
     src_laravel_api:
         build:
             context: ./TaskMateBackend/
             dockerfile: Dockerfile
         container_name: taskmate_src_laravel_api
-        restart: on-failure:3
+        restart: "on-failure:3"
         env_file:
             - ./.env
         environment:
@@ -68,17 +72,21 @@ services:
             - ./TaskMateBackend/:/var/www/src_laravel_api
             - ./TaskMateBackend/.env:/var/www/src_laravel_api/.env
             - ./wait-for-it.sh:/wait-for-it.sh:ro
+        expose:
+            - "9000"
         depends_on:
             - postgres
             - valkey
+        networks:
+            - web
 
-    # PHP-FPM для обработки PHP Telegram Bot API
+    # Telegram Bot PHP-FPM
     src_telegram_bot_api:
         build:
             context: ./TaskMateTelegramBot/
             dockerfile: Dockerfile
         container_name: taskmate_src_telegram_bot_api
-        restart: on-failure:3
+        restart: "on-failure:3"
         env_file:
             - ./.env
         extra_hosts:
@@ -98,18 +106,22 @@ services:
             - ./TaskMateTelegramBot/:/var/www/src_telegram_bot_api
             - ./TaskMateTelegramBot/.env:/var/www/src_telegram_bot_api/.env
             - ./wait-for-it.sh:/wait-for-it.sh:ro
+        expose:
+            - "9000"
         depends_on:
             - src_laravel_api
             - postgres
             - valkey
+        networks:
+            - web
 
-    # PHP-FPM для обработки PHP Telegram Bot API
+    # Vanilla Flow Telegram Bot PHP-FPM
     src_vanilla_flow_telegram_bot_api:
         build:
             context: ./VanillaFlowTelegramBot/
             dockerfile: Dockerfile
         container_name: taskmate_src_vanilla_flow_telegram_bot_api
-        restart: on-failure:3
+        restart: "on-failure:3"
         env_file:
             - ./.env
         extra_hosts:
@@ -129,30 +141,54 @@ services:
             - ./VanillaFlowTelegramBot/:/var/www/src_vanilla_flow_telegram_bot_api
             - ./VanillaFlowTelegramBot/.env:/var/www/src_vanilla_flow_telegram_bot_api/.env
             - ./wait-for-it.sh:/wait-for-it.sh:ro
+        expose:
+            - "9000"
         depends_on:
             - postgres
             - valkey
+        networks:
+            - web
 
-    # Nginx как реверс-прокси для src_laravel_api, src_telegram_bot_api и src_vanilla_flow_telegram_bot_api
+    # Nginx reverse-proxy (служит HTTPS и проксирует к php-fpm по fastcgi)
     nginx:
         image: nginx:latest
         container_name: taskmate_nginx
-        restart: on-failure:3
+        restart: "on-failure:3"
         ports:
-            - "8000:80"   # Laravel API
-            - "8001:81"   # Task Mate Telegram Bot API
-            - "8003:83"   # Vanilla Flow Telegram Bot API
+            - "80:80"
+            - "443:443"
         volumes:
+            - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+            - ./certbot/www:/var/www/certbot
+            - ./certbot/conf:/etc/letsencrypt
             - ./TaskMateBackend/:/var/www/src_laravel_api:ro
             - ./TaskMateTelegramBot/:/var/www/src_telegram_bot_api:ro
             - ./VanillaFlowTelegramBot/:/var/www/src_vanilla_flow_telegram_bot_api:ro
-            - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
         depends_on:
             - src_laravel_api
             - src_telegram_bot_api
             - src_vanilla_flow_telegram_bot_api
+        networks:
+            - web
+
+    # Certbot – одноразовый запуск для получения сертификатов (вручную запускаем ниже)
+    certbot:
+        image: certbot/certbot
+        container_name: taskmate_certbot
+        volumes:
+            - ./certbot/conf:/etc/letsencrypt
+            - ./certbot/www:/var/www/certbot
+        networks:
+            - web
+        # НЕ запускаем команду по умолчанию — будем запускать вручную через docker compose run
+
+
 
 volumes:
     valkey_data:
     postgres_data:
     pgadmin_data:
+
+networks:
+    web:
+        driver: bridge
