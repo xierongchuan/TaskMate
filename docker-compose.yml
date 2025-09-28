@@ -62,7 +62,9 @@ services:
             - ./.env
         environment:
             APP_DEBUG: ${DEBUG_MODE}
+            APP_ENV: ${APP_ENVIRONMENT}
             APP_KEY: ${LARAVEL_APP_KEY}
+            APP_URL: ${LARAVEL_APP_URL}
             DB_CONNECTION: ${DB_CONNECTION}
             DB_HOST: ${DB_HOST}
             DB_PORT: ${DB_PORT}
@@ -94,7 +96,9 @@ services:
             - "host.docker.internal:host-gateway"
         environment:
             APP_DEBUG: ${DEBUG_MODE}
+            APP_ENV: ${APP_ENVIRONMENT}
             APP_KEY: ${TASK_MATE_TELEGRAM_BOT_APP_KEY}
+            APP_URL: ${TASK_MATE_TELEGRAM_BOT_APP_URL}
             DB_CONNECTION: ${DB_CONNECTION}
             DB_HOST: ${DB_HOST}
             DB_PORT: ${DB_PORT}
@@ -104,6 +108,7 @@ services:
             TELEGRAM_TOKEN: ${TASK_MATE_TELEGRAM_BOT_TOKEN}
             VCRM_API_URL: ${VCRM_API_URL}
             VCRM_API_TOKEN: ${VCRM_API_TOKEN}
+            NUTGRAM_LOG_CHAT_ID: ${TASK_MATE_TELEGRAM_BOT_LOG_CHAT_ID}
         volumes:
             - ./TaskMateTelegramBot/:/var/www/src_telegram_bot_api
             - ./TaskMateTelegramBot/.env:/var/www/src_telegram_bot_api/.env
@@ -122,6 +127,7 @@ services:
         build:
             context: ./VanillaFlowTelegramBot/
             dockerfile: Dockerfile
+            target: runner
         container_name: taskmate_src_vanilla_flow_telegram_bot_api
         restart: "on-failure:3"
         env_file:
@@ -129,8 +135,10 @@ services:
         extra_hosts:
             - "host.docker.internal:host-gateway"
         environment:
+            APP_ENV: ${APP_ENVIRONMENT}
             APP_DEBUG: ${DEBUG_MODE}
             APP_KEY: ${VANILLA_FLOW_TELEGRAM_BOT_APP_KEY}
+            APP_URL: ${VANILLA_FLOW_TELEGRAM_BOT_APP_URL}
             DB_CONNECTION: ${DB_CONNECTION}
             DB_HOST: ${DB_HOST}
             DB_PORT: ${DB_PORT}
@@ -140,6 +148,7 @@ services:
             TELEGRAM_TOKEN: ${VANILLA_FLOW_TELEGRAM_BOT_TOKEN}
             VCRM_API_URL: ${VCRM_API_URL}
             VCRM_API_TOKEN: ${VCRM_API_TOKEN}
+            NUTGRAM_LOG_CHAT_ID: ${VANILLA_FLOW_TELEGRAM_BOT_LOG_CHAT_ID}
         volumes:
             - ./VanillaFlowTelegramBot/:/var/www/src_vanilla_flow_telegram_bot_api
             - ./VanillaFlowTelegramBot/.env:/var/www/src_vanilla_flow_telegram_bot_api/.env
