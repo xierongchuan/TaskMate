@@ -13,3 +13,7 @@ docker compose run --rm certbot certonly --webroot   --webroot-path=/var/www/cer
 ## Requires
 - Docker
 - Docker Compose
+
+## License
+License: Proprietary License <br>
+Copyright: © 2023-2025 [VanillaFlow](https://github.com/xierongchuan)
