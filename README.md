@@ -9,3 +9,7 @@ docker compose up -d --build nginx postgres valkey src_laravel_api src_telegram_
 ```bash
 docker compose run --rm certbot certonly --webroot   --webroot-path=/var/www/certbot   --email you@example.com   --agree-tos --no-eff-email   -d taskmate.andcrm.ru -d telegram.taskmate.andcrm.ru -d vanilla.taskmate.andcrm.ru
 ```
+
+## Requires
+- Docker
+- Docker Compose
