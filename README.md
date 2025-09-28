@@ -16,4 +16,4 @@ docker compose run --rm certbot certonly --webroot   --webroot-path=/var/www/cer
 
 ## License
 License: Proprietary License <br>
-Copyright: © 2023-2025 [VanillaFlow](https://github.com/xierongchuan)
+Copyright: © 2023-2025 [谢榕川](https://github.com/xierongchuan)
