@@ -1,0 +1,125 @@
+# HTTP -> ACME и редирект на HTTPS
+server {
+  listen 80;
+  listen [::]:80;
+  server_name taskmate.domen.com telegram.taskmate.domen.com vanilla.taskmate.domen.com;
+
+  # ACME challenge (webroot)
+  location /.well-known/acme-challenge/ {
+    root /var/www/certbot;
+    try_files $uri =404;
+  }
+
+  # Redirect all other traffic to https
+  location / {
+    return 301 https://$host$request_uri;
+  }
+}
+
+# Laravel (main)
+server {
+  listen 443 ssl http2;
+  listen [::]:443 ssl http2;
+  server_name taskmate.domen.com;
+
+  ssl_certificate /etc/letsencrypt/live/taskmate.domen.com/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/taskmate.domen.com/privkey.pem;
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_prefer_server_ciphers on;
+
+  root /var/www/src_laravel_api/public;
+  index index.php index.html;
+  client_max_body_size 50M;
+  charset utf-8;
+
+  location / {
+    try_files $uri $uri/ /index.php?$query_string;
+  }
+
+  location ~ \.php$ {
+    fastcgi_pass src_laravel_api:9000;
+    fastcgi_index index.php;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    include fastcgi_params;
+    fastcgi_read_timeout 300;
+  }
+
+  location ~ /\.(?!well-known).* {
+    deny all;
+  }
+
+  location /storage/ {
+    alias /var/www/src_laravel_api/public/storage/;
+    limit_rate 50k;
+  }
+}
+
+# Telegram bot
+server {
+  listen 443 ssl http2;
+  listen [::]:443 ssl http2;
+  server_name telegram.taskmate.domen.com;
+
+  ssl_certificate /etc/letsencrypt/live/taskmate.domen.com/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/taskmate.domen.com/privkey.pem;
+
+  root /var/www/src_telegram_bot_api/public;
+  index index.php index.html;
+  client_max_body_size 20M;
+
+  location / {
+    try_files $uri $uri/ /index.php?$query_string;
+  }
+
+  location ~ \.php$ {
+    fastcgi_pass src_telegram_bot_api:9000;
+    fastcgi_index index.php;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    include fastcgi_params;
+    fastcgi_read_timeout 300;
+  }
+
+  location ~ /\.(?!well-known).* {
+    deny all;
+  }
+
+  location /storage/ {
+    alias /var/www/src_telegram_bot_api/public/storage/;
+    limit_rate 50k;
+  }
+}
+
+# Vanilla Flow bot
+server {
+  listen 443 ssl http2;
+  listen [::]:443 ssl http2;
+  server_name vanilla.taskmate.domen.com;
+
+  ssl_certificate /etc/letsencrypt/live/taskmate.domen.com/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/taskmate.domen.com/privkey.pem;
+
+  root /var/www/src_vanilla_flow_telegram_bot_api/public;
+  index index.php index.html;
+  client_max_body_size 20M;
+
+  location / {
+    try_files $uri $uri/ /index.php?$query_string;
+  }
+
+  location ~ \.php$ {
+    fastcgi_pass src_vanilla_flow_telegram_bot_api:9000;
+    fastcgi_index index.php;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    include fastcgi_params;
+    fastcgi_read_timeout 300;
+  }
+
+  location ~ /\.(?!well-known).* {
+    deny all;
+  }
+
+  location /storage/ {
+    alias /var/www/src_vanilla_flow_telegram_bot_api/public/storage/;
+    limit_rate 50k;
+  }
+}

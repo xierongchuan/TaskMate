@@ -1,3 +1,4 @@
 /certbot/www
 /certbot/conf
+nginx.conf
 .env
