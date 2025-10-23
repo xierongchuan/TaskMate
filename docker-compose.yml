@@ -11,7 +11,7 @@ services:
         volumes:
             - valkey_data:/data
             - ./valkey.conf:/etc/valkey/valkey.conf:ro
-        command: ["valkey-server", "/etc/valkey/valkey.conf"]
+        command: [ "valkey-server", "/etc/valkey/valkey.conf" ]
         networks:
             - web
 
@@ -198,6 +198,7 @@ volumes:
     valkey_data:
     postgres_data:
     pgadmin_data:
+
 
 networks:
     web:
