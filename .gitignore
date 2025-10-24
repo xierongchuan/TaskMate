@@ -1,4 +1,5 @@
 /certbot/www
 /certbot/conf
 nginx.conf
+docker-compose.yml
 .env
