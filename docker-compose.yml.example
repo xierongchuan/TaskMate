@@ -61,12 +61,12 @@ services:
     environment:
       APP_DEBUG: ${DEBUG_MODE}
       APP_ENV: ${APP_ENVIRONMENT}
-      APP_KEY: ${LARAVEL_APP_KEY}
-      APP_URL: ${LARAVEL_APP_URL}
+      APP_KEY: ${TASK_MATE_BACKEND_APP_KEY}
+      APP_URL: ${TASK_MATE_BACKEND_APP_URL}
       DB_CONNECTION: ${DB_CONNECTION}
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
-      DB_DATABASE: ${DB_DATABASE_LARAVEL}
+      DB_DATABASE: ${DB_DATABASE_TASK_MATE_BACKEND}
       DB_USER: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
     volumes:
@@ -82,11 +82,11 @@ services:
       - web
 
   # Laravel PHP-FPM
-  # src_laravel_frontend_api:
+  # src_laravel_frontend:
   #     build:
   #         context: ./TaskMateFrontend/
   #         dockerfile: Dockerfile
-  #     container_name: taskmate_src_laravel_frontend_api
+  #     container_name: taskmate_src_laravel_frontend
   #     restart: "on-failure:3"
   #     env_file:
   #         - ./.env
@@ -98,12 +98,12 @@ services:
   #         DB_CONNECTION: ${DB_CONNECTION}
   #         DB_HOST: ${DB_HOST}
   #         DB_PORT: ${DB_PORT}
-  #         DB_DATABASE: ${DB_DATABASE_LARAVEL}
+  #         DB_DATABASE: ${DB_DATABASE_TASK_MATE_FRONTEND}
   #         DB_USER: ${DB_USERNAME}
   #         DB_PASSWORD: ${DB_PASSWORD}
   #     volumes:
-  #         - ./TaskMateFrontend/:/var/www/src_laravel_frontend_api
-  #         - ./TaskMateFrontend/.env:/var/www/src_laravel_frontend_api/.env
+  #         - ./TaskMateFrontend/:/var/www/src_laravel_frontend
+  #         - ./TaskMateFrontend/.env:/var/www/src_laravel_frontend/.env
   #         - ./wait-for-it.sh:/wait-for-it.sh:ro
   #     expose:
   #         - "9000"
