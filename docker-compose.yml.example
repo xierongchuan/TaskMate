@@ -193,7 +193,7 @@ services:
     networks:
       - web
 
-  # Nginx reverse-proxy (служит HTTPS и проксирует к php-fpm по fastcgi)
+  # Nginx reverse-proxy
   nginx:
     image: nginx:latest
     container_name: taskmate_nginx
