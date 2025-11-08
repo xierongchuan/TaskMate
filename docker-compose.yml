@@ -43,7 +43,7 @@ services:
         env_file: [ ./.env ]
         extra_hosts:
             - "host.docker.internal:host-gateway"
-        environment:
+        args:
             VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8007/api/v1}
         networks:
             - web
