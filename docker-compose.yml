@@ -9,11 +9,11 @@ services:
         command: [ "valkey-server", "/etc/valkey/valkey.conf" ]
         networks:
             - web
-        healthcheck:
-            test: [ "CMD", "sh", "-c", "nc -z localhost 6379 || exit 1" ]
-            interval: 10s
-            timeout: 3s
-            retries: 5
+        # healthcheck:
+        #     test: [ "CMD", "sh", "-c", "nc -z localhost 6379 || exit 1" ]
+        #     interval: 10s
+        #     timeout: 3s
+        #     retries: 5
 
     postgres:
         image: postgres:18
@@ -43,8 +43,8 @@ services:
         env_file: [ ./.env ]
         extra_hosts:
             - "host.docker.internal:host-gateway"
-        args:
-            VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8007/api/v1}
+        environment:
+            VITE_API_BASE_URL: ${VITE_API_BASE_URL}
         networks:
             - web
 
