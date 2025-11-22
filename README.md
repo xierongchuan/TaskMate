@@ -14,7 +14,10 @@
 │   ├─ conf/
 │   └─ www/
 ├─ .env.example
-└─ сервисы/ (TaskMateBackend, TaskMateFrontend, TaskMateTelegramBot, ...)
+├─ TaskMateFrontend/              # Frontend application (Vue/Vite)
+├─ TaskMateTelegramBot/           # Backend application (Laravel)
+├─ TaskMateAPI/                   # API collection (Bruno)
+└─ ...
 ```
 
 ---
