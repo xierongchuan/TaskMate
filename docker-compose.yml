@@ -38,6 +38,8 @@ services:
         build:
             context: ./TaskMateFrontend/
             dockerfile: Dockerfile
+            args:
+                VITE_API_BASE_URL: ${VITE_API_BASE_URL}
         container_name: taskmate_src_frontend
         restart: on-failure
         env_file: [ ./.env ]
