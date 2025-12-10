@@ -77,7 +77,6 @@ services:
             VCRM_API_TOKEN: ${VCRM_API_TOKEN}
             NUTGRAM_LOG_CHAT_ID: ${TASK_MATE_TELEGRAM_BOT_LOG_CHAT_ID}
         volumes:
-            - ./TaskMateTelegramBot/:/var/www/src_telegram_bot_api
             - ./TaskMateTelegramBot/.env:/var/www/src_telegram_bot_api/.env
             - ./wait-for-it.sh:/wait-for-it.sh:ro
         networks:
@@ -111,7 +110,6 @@ services:
             TELEGRAM_TOKEN: ${TASK_MATE_TELEGRAM_BOT_TOKEN}
             QUEUE_CONNECTION: valkey
         volumes:
-            - ./TaskMateTelegramBot/:/var/www/src_telegram_bot_api
             - ./TaskMateTelegramBot/.env:/var/www/src_telegram_bot_api/.env
             - ./TaskMateTelegramBot/supervisor.conf:/etc/supervisor/conf.d/supervisor.conf:ro
         depends_on:

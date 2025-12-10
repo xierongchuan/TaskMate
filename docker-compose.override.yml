@@ -1,4 +1,12 @@
 services:
+    src_telegram_bot_api:
+        volumes:
+            - ./TaskMateTelegramBot/:/var/www/src_telegram_bot_api
+
+    src_telegram_bot_scheduler:
+        volumes:
+            - ./TaskMateTelegramBot/:/var/www/src_telegram_bot_api
+
     postgres:
         ports:
             - "5432:5432"
