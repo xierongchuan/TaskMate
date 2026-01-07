@@ -14,8 +14,8 @@
 │   ├─ conf/
 │   └─ www/
 ├─ .env.example
-├─ TaskMateFrontend/              # Frontend application (Vue/Vite)
-├─ TaskMateTelegramBot/           # Backend application (Laravel)
+├─ TaskMateFrontend/              # Frontend application (React 19/Vite 7)
+├─ TaskMateTelegramBot/           # Backend application (Laravel 12/PHP 8.4)
 ├─ TaskMateAPI/                   # API collection (Bruno)
 └─ ...
 ```
@@ -106,6 +106,15 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm certbot
 ```
 
 Рекомендуется настроить cron/systemd timer или CI задачу, вызывающую выше команду.
+
+---
+
+# Основные функции системы
+
+* **Telegram Bot** — основной интерфейс для сотрудников.
+* **Web Interface** — админ-панель для владельцев и менеджеров.
+* **Task Generators** — система автоматического создания повторяющихся задач (ежедневно/еженедельно/ежемесячно).
+* **Notifications** — гибкая настройка уведомлений для задач и генераторов.
 
 ---
 
@@ -200,4 +209,4 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-o
 ## Лицензия
 
 License: Proprietary License
-Copyright: © 2023-2025 [谢榕川](https://github.com/xierongchuan) All rights reserved.
+Copyright: © 2023-2026 [谢榕川](https://github.com/xierongchuan) All rights reserved.
