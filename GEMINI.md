@@ -1,33 +1,38 @@
 # ♊ GEMINI Project Knowledge Base
 
 ## Обзор проекта
+
 TaskMate - это комплексная система управления задачами с Telegram-ботом и веб-интерфейсом.
 
 ## 🛠 Технологический стек
 
 ### Frontend (`TaskMateFrontend`)
-- **Framework**: React 19
-- **Build Tool**: Vite 7
+
+- **Framework**: React 19.1
+- **Build Tool**: Vite 7.1
 - **Language**: TypeScript 5.9
-- **State Management**: Zustand
+- **State Management**: Zustand 5
 - **Styling**: TailwindCSS 3.4
-- **Routing**: React Router 7
+- **Routing**: React Router 7.9
 - **API/Query**: TanStack Query (React Query) v5
 - **Forms**: React Hook Form
 - **Icons**: Heroicons
 
 ### Backend & Bot (`TaskMateTelegramBot`)
+
 - **Framework**: Laravel 12
 - **Language**: PHP 8.4
-- **Telegram SDK**: Nutgram
+- **Telegram SDK**: Nutgram 1.5
 - **API Auth**: Laravel Sanctum
-- **Cache/Queue**: Redis (Valkey) via Predis
+- **Cache/Queue**: Valkey (Redis-compatible) via Predis
 - **Testing**: Pest PHP
+- **Database**: PostgreSQL 18
 
 ### Infrastructure
+
 - **Containerization**: Docker Compose
 - **Web Server**: Nginx
-- **Database**: PostgreSQL
+- **Database**: PostgreSQL 18
 - **Cache**: Valkey (Redis-compatible)
 - **SSL**: Certbot (Let's Encrypt)
 - **API Spec**: Bruno (`TaskMateAPI`)
@@ -43,12 +48,15 @@ TaskMate - это комплексная система управления з�
 ## 🚀 Основные команды
 
 ### Запуск (Docker)
+
 ```bash
 docker compose up -d --build
 ```
 
 ### Тестирование
+
 **Backend (Pest):**
+
 ```bash
 docker compose exec src_telegram_bot_api php artisan test
 ```
@@ -65,5 +73,6 @@ docker compose exec src_telegram_bot_api php artisan test
    - При изменении Frontend сверяться с документацией API.
 
 ## 📝 Заметки
-- `README.md` в корне содержит неточность про "Vue/Vite", по факту используется **React**.
-- Проект использует `Laravel 12` и `PHP 8.4` (актуально для 2026 года).
+
+- Проект использует **Laravel 12** и **PHP 8.4** (актуально для 2026 года).
+- Используется **React 19** для фронтенда.
