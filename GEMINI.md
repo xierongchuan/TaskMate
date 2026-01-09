@@ -22,7 +22,7 @@ TaskMate - это комплексная система управления з�
 
 - **Framework**: Laravel 12
 - **Language**: PHP 8.4
-- **Telegram SDK**: Nutgram 1.5
+- **Telegram SDK**: Nutgram 1.6
 - **API Auth**: Laravel Sanctum
 - **Cache/Queue**: Valkey (Redis-compatible) via Predis
 - **Testing**: Pest PHP
