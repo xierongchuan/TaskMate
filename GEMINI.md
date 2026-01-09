@@ -76,3 +76,4 @@ docker compose exec src_telegram_bot_api php artisan test
 
 - Проект использует **Laravel 12** и **PHP 8.4**.
 - Используется **React 19** для фронтенда.
+- При работе с инструментами окружения используй всё через docker контейнеры.
