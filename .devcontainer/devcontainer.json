@@ -13,9 +13,7 @@
   ],
   "customizations": {
     "vscode": {
-      "extensions": [
-        "kilocode.Kilo-Code"
-      ]
+      "extensions": []
     }
   }
   // Use 'postCreateCommand' to run commands after the container is created.
