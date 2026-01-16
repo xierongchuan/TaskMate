@@ -50,12 +50,12 @@ services:
         networks:
             - web
 
-    src_telegram_bot_api:
+    backend_api:
         build:
-            context: ./TaskMateTelegramBot/
+            context: ./TaskMateBackend/
             dockerfile: Dockerfile
             target: runner
-        container_name: taskmate_src_telegram_bot_api
+        container_name: taskmate_backend_api
         restart: on-failure
         env_file: [ ./.env ]
         extra_hosts:
@@ -63,21 +63,19 @@ services:
         environment:
             APP_DEBUG: ${DEBUG_MODE}
             APP_ENV: ${APP_ENVIRONMENT}
-            APP_KEY: ${TASK_MATE_TELEGRAM_BOT_APP_KEY}
-            APP_URL: ${TASK_MATE_TELEGRAM_BOT_APP_URL}
+            APP_KEY: ${TASK_MATE_BACKEND_APP_KEY}
+            APP_URL: ${TASK_MATE_BACKEND_APP_URL}
             APP_TIMEZONE: ${APP_TIMEZONE}
             DB_CONNECTION: ${DB_CONNECTION}
             DB_HOST: ${DB_HOST}
             DB_PORT: ${DB_PORT}
-            DB_DATABASE: ${DB_DATABASE_TASK_MATE_TELEGRAM_BOT}
+            DB_DATABASE: ${DB_DATABASE_TASK_MATE_BACKEND}
             DB_USER: ${DB_USERNAME}
             DB_PASSWORD: ${DB_PASSWORD}
-            TELEGRAM_TOKEN: ${TASK_MATE_TELEGRAM_BOT_TOKEN}
             VCRM_API_URL: ${VCRM_API_URL:-}
             VCRM_API_TOKEN: ${VCRM_API_TOKEN:-}
-            NUTGRAM_LOG_CHAT_ID: ${TASK_MATE_TELEGRAM_BOT_LOG_CHAT_ID}
         volumes:
-            - ./TaskMateTelegramBot/.env:/var/www/src_telegram_bot_api/.env
+            - ./TaskMateBackend/.env:/var/www/backend_api/.env
             - ./wait-for-it.sh:/wait-for-it.sh:ro
         networks:
             - web
@@ -85,12 +83,12 @@ services:
             - postgres
             - valkey
 
-    src_telegram_bot_scheduler:
+    backend_scheduler:
         build:
-            context: ./TaskMateTelegramBot/
+            context: ./TaskMateBackend/
             dockerfile: Dockerfile
             target: runner
-        container_name: taskmate_src_telegram_bot_scheduler
+        container_name: taskmate_backend_scheduler
         restart: unless-stopped
         env_file: [ ./.env ]
         extra_hosts:
@@ -98,21 +96,20 @@ services:
         environment:
             APP_DEBUG: ${DEBUG_MODE}
             APP_ENV: ${APP_ENVIRONMENT}
-            APP_KEY: ${TASK_MATE_TELEGRAM_BOT_APP_KEY}
-            APP_URL: ${TASK_MATE_TELEGRAM_BOT_APP_URL}
+            APP_KEY: ${TASK_MATE_BACKEND_APP_KEY}
+            APP_URL: ${TASK_MATE_BACKEND_APP_URL}
             APP_TIMEZONE: ${APP_TIMEZONE}
             DB_CONNECTION: ${DB_CONNECTION}
             DB_HOST: ${DB_HOST}
             DB_PORT: ${DB_PORT}
-            DB_DATABASE: ${DB_DATABASE_TASK_MATE_TELEGRAM_BOT}
+            DB_DATABASE: ${DB_DATABASE_TASK_MATE_BACKEND}
             DB_USER: ${DB_USERNAME}
             DB_PASSWORD: ${DB_PASSWORD}
-            TELEGRAM_TOKEN: ${TASK_MATE_TELEGRAM_BOT_TOKEN}
             QUEUE_CONNECTION: valkey
         volumes:
-            - ./TaskMateTelegramBot/.env:/var/www/src_telegram_bot_api/.env
-            - ./TaskMateTelegramBot/supervisor.conf:/etc/supervisor/conf.d/supervisor.conf:ro
-            - ./TaskMateTelegramBot/sync-scheduler.sh:/var/www/src_telegram_bot_api/sync-scheduler.sh:ro
+            - ./TaskMateBackend/.env:/var/www/backend_api/.env
+            - ./TaskMateBackend/supervisor.conf:/etc/supervisor/conf.d/supervisor.conf:ro
+            - ./TaskMateBackend/sync-scheduler.sh:/var/www/backend_api/sync-scheduler.sh:ro
         depends_on:
             - postgres
             - valkey
@@ -126,15 +123,15 @@ services:
         restart: on-failure
         volumes:
 
-            - ./TaskMateTelegramBot/:/var/www/src_telegram_bot_api:ro
+            - ./TaskMateBackend/:/var/www/backend_api:ro
             - ./certbot/www:/var/www/certbot
             - ./certbot/conf:/etc/letsencrypt
         networks:
             - web
         depends_on:
             - src_frontend
-            - src_telegram_bot_api
-            - src_telegram_bot_scheduler
+            - backend_api
+            - backend_scheduler
 
     certbot:
         image: certbot/certbot

@@ -1,6 +1,6 @@
-[submodule "TaskMateTelegramBot"]
-	path = TaskMateTelegramBot
-	url = https://github.com/xierongchuan/TaskMateTelegramBot.git
+[submodule "TaskMateBackend"]
+	path = TaskMateBackend
+	url = https://github.com/xierongchuan/TaskMateBackend.git
 [submodule "TaskMateFrontend"]
 	path = TaskMateFrontend
 	url = https://github.com/xierongchuan/TaskMateFrontend.git

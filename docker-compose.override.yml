@@ -1,11 +1,11 @@
 services:
-    src_telegram_bot_api:
+    backend_api:
         volumes:
-            - ./TaskMateTelegramBot/:/var/www/src_telegram_bot_api
+            - ./TaskMateBackend/:/var/www/backend_api
 
-    src_telegram_bot_scheduler:
+    backend_scheduler:
         volumes:
-            - ./TaskMateTelegramBot/:/var/www/src_telegram_bot_api
+            - ./TaskMateBackend/:/var/www/backend_api
 
     postgres:
         ports:

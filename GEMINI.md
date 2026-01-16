@@ -18,11 +18,10 @@ TaskMate - это комплексная система управления з�
 - **Forms**: React Hook Form
 - **Icons**: Heroicons
 
-### Backend & Bot (`TaskMateTelegramBot`)
+### Backend (`TaskMateBackend`)
 
 - **Framework**: Laravel 12
 - **Language**: PHP 8.4
-- **Telegram SDK**: Nutgram 1.6
 - **API Auth**: Laravel Sanctum
 - **Cache/Queue**: Valkey (Redis-compatible) via Predis
 - **Testing**: Pest PHP
@@ -40,7 +39,7 @@ TaskMate - это комплексная система управления з�
 ## 📂 Структура проекта
 
 - `TaskMateFrontend/`: Исходный код веб-приложения (React).
-- `TaskMateTelegramBot/`: Исходный код бэкенда и бота (Laravel).
+- `TaskMateBackend/`: Исходный код бэкенда REST API (Laravel).
 - `TaskMateAPI/`: Коллекция API запросов (Bruno).
 - `nginx/`: Конфигурации Nginx для dev и prod.
 - `docker-compose*.yml`: Оркестрация контейнеров.
@@ -58,7 +57,7 @@ docker compose up -d --build
 **Backend (Pest):**
 
 ```bash
-docker compose exec src_telegram_bot_api php artisan test
+docker compose exec backend_api php artisan test
 ```
 
 ## ⚠️ Правила разработки (User Rules)
