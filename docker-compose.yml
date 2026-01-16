@@ -112,6 +112,7 @@ services:
         volumes:
             - ./TaskMateTelegramBot/.env:/var/www/src_telegram_bot_api/.env
             - ./TaskMateTelegramBot/supervisor.conf:/etc/supervisor/conf.d/supervisor.conf:ro
+            - ./TaskMateTelegramBot/sync-scheduler.sh:/var/www/src_telegram_bot_api/sync-scheduler.sh:ro
         depends_on:
             - postgres
             - valkey

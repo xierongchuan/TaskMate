@@ -97,7 +97,7 @@ docker compose exec src_telegram_bot_api composer install
 
 ```bash
 docker compose exec src_telegram_bot_api php artisan migrate --force
-docker compose exec src_telegram_bot_api php artisan db:seed
+docker compose exec src_telegram_bot_api php artisan db:seed-demo
 ```
 
 **В) Линк хранилища:**
@@ -142,6 +142,31 @@ docker compose exec src_telegram_bot_api php artisan storage:link
 - **Bot SDK**: Nutgram 1.5
 - **Database**: PostgreSQL 18
 - **Cache**: Valkey (Redis-compatible)
+
+---
+
+## ⏰ Очереди и Планировщик (Scheduler)
+
+Для корректной работы генераторов задач и фоновых процессов (уведомления, отчеты) в проекте используется сложная система очередей.
+
+### 1. Планировщик (Scheduler)
+
+Работает в отдельном контейнере `src_telegram_bot_scheduler` и запускает команды по расписанию:
+
+- **Генерация задач (`ProcessTaskGeneratorsJob`)**: Каждые 5 минут. Создает экземпляры задач из активных генераторов.
+- **Повторяющиеся задачи (`ProcessRecurringTasksJob`)**: Ежечасно.
+- **Уведомления и проверки**: Настроены в `routes/console.php`.
+
+Механизм запуска: Скрипт `sync-scheduler.sh` обеспечивает запуск `php artisan schedule:run` ровно в `XX:XX:00` каждую минуту для точности.
+
+### 2. Очереди (Queues)
+
+Обработчик очередей `laravel-worker` (Supervisor) настроен на обработку двух каналов:
+
+1. `default` — основные задачи (генерация задач, системные джобы).
+2. `notifications` — отправка уведомлений в Telegram (приоритетная очередь).
+
+Конфигурация Supervisor: `TaskMateTelegramBot/supervisor.conf`.
 
 ---
 
