@@ -13,7 +13,7 @@
 │   ├─ nginx.local.conf                     # Nginx для локальной разработки
 │   └─ nginx.prod.conf                      # Nginx для продакшна (SSL)
 ├─ TaskMateFrontend/                        # Frontend (React 19, TypeScript 5.9, Vite 7)
-├─ TaskMateTelegramBot/                     # Backend & Bot (Laravel 12, PHP 8.4)
+├─ TaskMateBackend/                         # Backend API (Laravel 12, PHP 8.4, FrankenPHP)
 ├─ TaskMateAPI/                             # Коллекция API (Bruno)
 └─ ...
 ```
@@ -88,7 +88,7 @@ docker compose up -d --build
 Если папка `vendor` отсутствует (код монтируется, но зависимости в .gitignore), установите их внутри контейнера:
 
 ```bash
-docker compose exec src_telegram_bot_api composer install
+docker compose exec backend_api composer install
 ```
 
 **Б) Миграции и Сидинг (Тестовые данные):**
@@ -96,8 +96,8 @@ docker compose exec src_telegram_bot_api composer install
 Накатываем структуру БД и заполняем её демо-пользователями:
 
 ```bash
-docker compose exec src_telegram_bot_api php artisan migrate --force
-docker compose exec src_telegram_bot_api php artisan db:seed-demo
+docker compose exec backend_api php artisan migrate --force
+docker compose exec backend_api php artisan db:seed-demo
 ```
 
 **В) Линк хранилища:**
@@ -105,7 +105,7 @@ docker compose exec src_telegram_bot_api php artisan db:seed-demo
 Чтобы картинки и файлы были доступны из веба:
 
 ```bash
-docker compose exec src_telegram_bot_api php artisan storage:link
+docker compose exec backend_api php artisan storage:link
 ```
 
 ### 5. Готово! 🏁
@@ -134,14 +134,16 @@ docker compose exec src_telegram_bot_api php artisan storage:link
 - **State**: Zustand
 - **Query**: TanStack Query v5 (с оптимизацией UX через `placeholderData`)
 
-### Backend & Bot
+### Backend API
 
 - **Framework**: Laravel 12
 - **Language**: PHP 8.4
+- **Application Server**: FrankenPHP v1 (Caddy-based)
 - **Testing**: Pest PHP 3.8
-- **Bot SDK**: Nutgram 1.5
 - **Database**: PostgreSQL 18
 - **Cache**: Valkey (Redis-compatible)
+
+> **FrankenPHP** — современный сервер приложений для PHP, построенный на Caddy. Обеспечивает лучшую производительность по сравнению с PHP-FPM, встроенную поддержку HTTP/2/HTTP/3, автоматический HTTPS и сжатие (zstd/gzip).
 
 ---
 
@@ -151,7 +153,7 @@ docker compose exec src_telegram_bot_api php artisan storage:link
 
 ### 1. Планировщик (Scheduler)
 
-Работает в отдельном контейнере `src_telegram_bot_scheduler` и запускает команды по расписанию:
+Работает в отдельном контейнере `backend_scheduler` и запускает команды по расписанию:
 
 - **Генерация задач (`ProcessTaskGeneratorsJob`)**: Каждые 5 минут. Создает экземпляры задач из активных генераторов.
 - **Повторяющиеся задачи (`ProcessRecurringTasksJob`)**: Ежечасно.
@@ -164,9 +166,9 @@ docker compose exec src_telegram_bot_api php artisan storage:link
 Обработчик очередей `laravel-worker` (Supervisor) настроен на обработку двух каналов:
 
 1. `default` — основные задачи (генерация задач, системные джобы).
-2. `notifications` — отправка уведомлений в Telegram (приоритетная очередь).
+2. `notifications` — отправка уведомлений (приоритетная очередь).
 
-Конфигурация Supervisor: `TaskMateTelegramBot/supervisor.conf`.
+Конфигурация Supervisor: `TaskMateBackend/supervisor.conf`.
 
 ---
 
@@ -214,7 +216,7 @@ docker compose exec src_telegram_bot_api php artisan storage:link
 1. **Backend**: При любых изменениях **ОБЯЗАТЕЛЬНО** запускать тесты:
 
    ```bash
-   docker compose exec src_telegram_bot_api php artisan test
+   docker compose exec backend_api php artisan test
    ```
 
 2. **Frontend & Backend**: Всегда проверять совместимость с API (Swagger/Bruno).
@@ -228,13 +230,13 @@ docker compose exec src_telegram_bot_api php artisan storage:link
 - **Permission denied (Docker Build)**: Если при сборке возникает ошибка доступа к `storage/framework/testing`, выполните на хосте:
 
   ```bash
-  sudo chown -R $USER:$USER TaskMateTelegramBot/storage
+  sudo chown -R $USER:$USER TaskMateBackend/storage
   ```
 
 - **Storage permissions (Runtime)**: Если бот не может писать логи:
 
   ```bash
-  docker compose exec src_telegram_bot_api chown -R www-data:www-data storage bootstrap/cache
+  docker compose exec backend_api chown -R www-data:www-data storage bootstrap/cache
   ```
 
 - **Database connection**: Убедитесь, что в `.env` указан `DB_HOST=postgres`, а не `localhost`.

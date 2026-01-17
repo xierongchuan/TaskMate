@@ -30,7 +30,8 @@ TaskMate - это комплексная система управления з�
 ### Infrastructure
 
 - **Containerization**: Docker Compose
-- **Web Server**: Nginx
+- **Application Server**: FrankenPHP v1 (Caddy-based)
+- **Reverse Proxy**: Nginx (frontend + SSL termination)
 - **Database**: PostgreSQL 18
 - **Cache**: Valkey (Redis-compatible)
 - **SSL**: Certbot (Let's Encrypt)

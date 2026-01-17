@@ -1,11 +1,13 @@
 services:
     backend_api:
         volumes:
-            - ./TaskMateBackend/:/var/www/backend_api
+            - ./TaskMateBackend/:/app
+        ports:
+            - "8007:8000"
 
     backend_scheduler:
         volumes:
-            - ./TaskMateBackend/:/var/www/backend_api
+            - ./TaskMateBackend/:/app
 
     postgres:
         ports:
@@ -21,7 +23,7 @@ services:
 
     nginx:
         ports:
-            - "8007:8007"
+            - "8080:80"
         volumes:
             - ./nginx/nginx.local.conf:/etc/nginx/conf.d/default.conf:ro
             - /dev/null:/docker-entrypoint.d/20-envsubst-on-templates.sh:ro

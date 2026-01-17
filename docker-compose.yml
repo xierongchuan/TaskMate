@@ -9,11 +9,6 @@ services:
         command: [ "valkey-server", "/etc/valkey/valkey.conf" ]
         networks:
             - web
-        # healthcheck:
-        #     test: [ "CMD", "sh", "-c", "nc -z localhost 6379 || exit 1" ]
-        #     interval: 10s
-        #     timeout: 3s
-        #     retries: 5
 
     postgres:
         image: postgres:18
@@ -74,8 +69,10 @@ services:
             DB_PASSWORD: ${DB_PASSWORD}
             VCRM_API_URL: ${VCRM_API_URL:-}
             VCRM_API_TOKEN: ${VCRM_API_TOKEN:-}
+            # FrankenPHP настройки
+            SERVER_NAME: ":8000"
         volumes:
-            - ./TaskMateBackend/.env:/var/www/backend_api/.env
+            - ./TaskMateBackend/.env:/app/.env
             - ./wait-for-it.sh:/wait-for-it.sh:ro
         networks:
             - web
@@ -107,23 +104,23 @@ services:
             DB_PASSWORD: ${DB_PASSWORD}
             QUEUE_CONNECTION: valkey
         volumes:
-            - ./TaskMateBackend/.env:/var/www/backend_api/.env
+            - ./TaskMateBackend/.env:/app/.env
             - ./TaskMateBackend/supervisor.conf:/etc/supervisor/conf.d/supervisor.conf:ro
-            - ./TaskMateBackend/sync-scheduler.sh:/var/www/backend_api/sync-scheduler.sh:ro
+            - ./TaskMateBackend/sync-scheduler.sh:/app/sync-scheduler.sh:ro
         depends_on:
             - postgres
             - valkey
         networks:
             - web
         command: [ "supervisord", "-n", "-c", "/etc/supervisor/conf.d/supervisor.conf" ]
+        healthcheck:
+            disable: true
 
     nginx:
         image: nginx:latest
         container_name: taskmate_nginx
         restart: on-failure
         volumes:
-
-            - ./TaskMateBackend/:/var/www/backend_api:ro
             - ./certbot/www:/var/www/certbot
             - ./certbot/conf:/etc/letsencrypt
         networks:
@@ -131,7 +128,6 @@ services:
         depends_on:
             - src_frontend
             - backend_api
-            - backend_scheduler
 
     certbot:
         image: certbot/certbot
