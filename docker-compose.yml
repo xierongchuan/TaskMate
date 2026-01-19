@@ -1,6 +1,6 @@
 services:
     valkey:
-        image: valkey/valkey:latest
+        image: valkey/valkey:9.0.1
         container_name: taskmate_valkey
         restart: on-failure
         volumes:
@@ -11,7 +11,7 @@ services:
             - web
 
     postgres:
-        image: postgres:18
+        image: postgres:18.1
         container_name: taskmate_postgres
         restart: on-failure
         env_file: [ ./.env ]
@@ -130,7 +130,7 @@ services:
             - backend_api
 
     certbot:
-        image: certbot/certbot
+        image: certbot/certbot:latest
         container_name: taskmate_certbot
         volumes:
             - ./certbot/conf:/etc/letsencrypt
