@@ -9,7 +9,7 @@ TaskMate is a Russian-language task management system for automotive dealerships
 - **Backend**: Laravel 12 + PHP 8.4 + PostgreSQL + FrankenPHP (`TaskMateBackend/`)
 - **API Collection**: Bruno HTTP client collection (`TaskMateAPI/`)
 
-The system includes a Telegram bot integration, role-based access control (employee, observer, manager, owner), and multi-tenant dealership management.
+The system includes a role-based access control (employee, observer, manager, owner), and multi-tenant dealership management.
 
 ## Development Commands
 
@@ -114,17 +114,35 @@ Base URL: `/api/v1`
 
 ### Backend
 - Controllers return API Resources for consistent response formatting
-- Form Requests handle validation
-- Service layer for complex business logic
+- Form Requests handle validation (`app/Http/Requests/Api/V1/`)
+- Service layer for complex business logic:
+  - `TaskService` — создание, обновление задач, проверка дубликатов
+  - `TaskFilterService` — фильтрация задач по параметрам
+  - `DashboardService` — оптимизированные запросы для дашборда
+  - `ShiftService` — управление сменами
+  - `SettingsService` — системные настройки
+- Custom exceptions (`DuplicateTaskException`, `AccessDeniedException`)
 - Eager loading to prevent N+1 queries
+- SoftDeletes на ключевых моделях (User, AutoDealership, Task)
 
 ## Important Constraints
 
-- **Russian language** throughout UI text and comments
+- **Язык**: Русский (UI, комментарии, документация)
 - **PostgreSQL only** (not MySQL-compatible)
 - **Minimum 50% test coverage** for backend
 - **Bearer token authentication** via Laravel Sanctum (no sessions)
-- Always run `php artisan test` before committing backend changes
+
+## Правила разработки
+
+### Backend
+- **ВСЕГДА** запускать тесты при любых изменениях: `php artisan test`
+- Проверять актуальность существующих тестов при изменении логики
+- Обновлять README.md после успешного внедрения изменений
+
+### Frontend & API
+- При изменении Backend **обязательно** проверять совместимость с Frontend и документацией API (Bruno)
+- При изменении Frontend сверяться с документацией API и проверять корректность запросов
+- Поддерживать синхронизацию между Backend, Frontend и API-коллекцией
 
 ## Additional Documentation
 

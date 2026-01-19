@@ -1,7 +1,7 @@
 {
   "name": "TaskMate Dev Container",
   "dockerComposeFile": "../docker-compose.yml",
-  "service": "src_telegram_bot_api",
+  "service": "backend_api",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   // Features to add to the dev container. More info: https://containers.dev/features.
   // "features": {},

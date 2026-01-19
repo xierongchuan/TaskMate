@@ -30,4 +30,4 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml ps
 
 echo "✅ Деплой завершен!"
 echo "💡 Не забудьте запустить миграции, если это необходимо:"
-echo "   docker compose exec src_telegram_bot_api php artisan migrate --force"
+echo "   docker compose exec backend_api php artisan migrate --force"
