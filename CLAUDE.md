@@ -9,7 +9,10 @@ TaskMate is a Russian-language task management system for automotive dealerships
 - **Backend**: Laravel 12 + PHP 8.4 + PostgreSQL + FrankenPHP (`TaskMateBackend/`)
 - **API Collection**: Bruno HTTP client collection (`TaskMateAPI/`)
 
-The system includes a role-based access control (employee, observer, manager, owner), and multi-tenant dealership management.
+The system includes a role-based access control (employee, observer, manager, owner), multi-tenant dealership management, and three types of tasks:
+- **notification** — information-only tasks
+- **completion** — tasks requiring completion mark
+- **completion_with_proof** — tasks requiring file uploads (photos/videos/docs) with manager verification workflow
 
 ## Development Commands
 
@@ -86,6 +89,18 @@ composer dev
 - **Server state**: TanStack Query v5 with `placeholderData` for UX optimization
 - Query invalidation on mutations maintains data consistency
 
+### File Upload & Security
+- **Task proofs**: Private storage (`task_proofs` disk) for completion_with_proof tasks
+- **Limits**: Up to 5 files, max 200MB total per task
+- **Formats**: Images (JPG/PNG/GIF/WebP), Video (MP4/MOV), Documents (PDF/ZIP)
+- **Security**:
+  - Files stored in private directory (not web-accessible)
+  - Signed temporary URLs (60 min expiration)
+  - Triple-layer auth: URL signature + Bearer token + access control
+  - Content validation (getimagesize, magic bytes for PDF/ZIP)
+  - Transactional upload with rollback on errors
+- **S3-ready**: Can migrate to S3-compatible storage (AWS S3, DigitalOcean Spaces, MinIO, Yandex Object Storage)
+
 ### Background Processing
 Queue workers handle notifications and scheduled tasks via Valkey (Redis-compatible):
 - `SendScheduledTasksJob` (every 5 min) - sends tasks when appear_date arrives
@@ -118,6 +133,7 @@ Base URL: `/api/v1`
 - Service layer for complex business logic:
   - `TaskService` — создание, обновление задач, проверка дубликатов
   - `TaskFilterService` — фильтрация задач по параметрам
+  - `TaskProofService` — загрузка и валидация доказательств выполнения
   - `DashboardService` — оптимизированные запросы для дашборда
   - `ShiftService` — управление сменами
   - `SettingsService` — системные настройки
@@ -135,9 +151,11 @@ Base URL: `/api/v1`
 ## Правила разработки
 
 ### Backend
-- **ВСЕГДА** запускать тесты при любых изменениях: `php artisan test`
+- **ВСЕГДА** запускать тесты при любых изменениях: `php artisan test` (193 теста)
 - Проверять актуальность существующих тестов при изменении логики
 - Обновлять README.md после успешного внедрения изменений
+- Приватные файлы хранятся в `storage/app/private/task_proofs/`, доступ через подписанные URL
+- Система готова к миграции на S3 (см. `config/filesystems.php`)
 
 ### Frontend & API
 - При изменении Backend **обязательно** проверять совместимость с Frontend и документацией API (Bruno)

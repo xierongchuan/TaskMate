@@ -130,9 +130,10 @@ docker compose exec backend_api php artisan storage:link
 - **Framework**: Laravel 12
 - **Language**: PHP 8.4
 - **Application Server**: FrankenPHP v1 (Caddy-based)
-- **Testing**: Pest PHP 3.8 (183+ тестов, 50%+ покрытие)
+- **Testing**: Pest PHP 3.8 (193+ тестов, 50%+ покрытие)
 - **Database**: PostgreSQL 18
 - **Cache**: Valkey (Redis-compatible)
+- **Storage**: Local (S3-ready)
 
 > **FrankenPHP** — современный сервер приложений для PHP, построенный на Caddy. Обеспечивает лучшую производительность по сравнению с PHP-FPM, встроенную поддержку HTTP/2/HTTP/3, автоматический HTTPS и сжатие (zstd/gzip).
 
@@ -145,12 +146,27 @@ docker compose exec backend_api php artisan storage:link
 - **Services** — бизнес-логика:
   - `TaskService` — создание, обновление задач, проверка дубликатов
   - `TaskFilterService` — фильтрация задач по параметрам
+  - `TaskProofService` — загрузка и валидация доказательств выполнения
   - `DashboardService` — оптимизированные агрегатные запросы
   - `ShiftService` — управление сменами
   - `SettingsService` — системные настройки
 - **API Resources** — форматирование ответов API
 - **Custom Exceptions** — `DuplicateTaskException`, `AccessDeniedException`
 - **SoftDeletes** — мягкое удаление на User, AutoDealership, Task
+
+### Типы задач и верификация
+
+Система поддерживает три типа задач:
+
+1. **notification** — уведомление без требования ответа
+2. **completion** — требует отметки о выполнении
+3. **completion_with_proof** — требует загрузки доказательств (до 5 файлов, до 200 МБ)
+
+**Workflow верификации:**
+- Сотрудник отмечает задачу выполненной → `pending_review`
+- Менеджер проверяет → `verified` / `rejected`
+- Приватное хранилище с подписанными URL (60 мин)
+- Трёхуровневая безопасность: URL подпись + Bearer токен + проверка доступа
 
 ---
 
