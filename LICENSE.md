@@ -1,7 +1,7 @@
 # 🛡️ Strict Proprietary Software License  
 **For TaskMate**
 
-This software and its source code, documentation, and all associated files (collectively, the "Software") are the sole property of **Tulenov Temur Pulatovich**, an individual ("Licensor").
+This software and its source code, documentation, and all associated files (collectively, the "Software") are the sole property of [**https://github.com/xierongchuan**](https://github.com/xierongchuan), an individual ("Licensor").
 
 ---
 

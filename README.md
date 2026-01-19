@@ -285,5 +285,5 @@ newgrp www-data
 
 ## Лицензия
 
-License: Proprietary License  
-Copyright: © 2023-2026 [谢榕川](https://github.com/xierongchuan) All rights reserved.
+License: Proprietary License
+Copyright: © 2023-2026 [https://github.com/xierongchuan](https://github.com/xierongchuan). All rights reserved.
