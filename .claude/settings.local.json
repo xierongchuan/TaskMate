@@ -7,7 +7,9 @@
       "Bash(wc:*)",
       "Bash(npm run build:*)",
       "Bash(ls:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(npm run lint:*)",
+      "Bash(php artisan test:*)"
     ]
   }
 }
