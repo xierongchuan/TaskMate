@@ -9,7 +9,8 @@
       "Bash(ls:*)",
       "Bash(chmod:*)",
       "Bash(npm run lint:*)",
-      "Bash(php artisan test:*)"
+      "Bash(php artisan test:*)",
+      "Bash(npx eslint:*)"
     ]
   }
 }
