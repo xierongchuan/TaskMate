@@ -1,25 +1,292 @@
 {
-  "name": "TaskMate Dev Container",
+  "name": "TaskMate Full Stack Development",
   "dockerComposeFile": "../docker-compose.yml",
   "service": "backend_api",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-  // Features to add to the dev container. More info: https://containers.dev/features.
-  // "features": {},
-  // For use with PHP or Apache (e.g.php -S localhost:8080 or apache2ctl start)
+  "shutdownAction": "stopCompose",
+
+  // Features - additional tools and runtimes
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest",
+      "ppa": false
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "moby": true,
+      "dockerDashComposeVersion": "v2"
+    },
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": true,
+      "upgradePackages": true,
+      "username": "vscode",
+      "userUid": "automatic",
+      "userGid": "automatic"
+    }
+  },
+
+  // Forward ports for all services
   "forwardPorts": [
-    5432,
-    6379,
-    8007
+    5432,   // PostgreSQL
+    6379,   // Valkey (Redis)
+    8007,   // Backend API
+    8099,   // Frontend
+    5173    // Vite dev server
   ],
+
+  // Port labels for better identification
+  "portsAttributes": {
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "notify"
+    },
+    "6379": {
+      "label": "Valkey/Redis",
+      "onAutoForward": "silent"
+    },
+    "8007": {
+      "label": "Backend API",
+      "onAutoForward": "notify"
+    },
+    "8099": {
+      "label": "Frontend",
+      "onAutoForward": "openBrowser"
+    },
+    "5173": {
+      "label": "Vite Dev Server",
+      "onAutoForward": "silent"
+    }
+  },
+
+  // VS Code customizations
   "customizations": {
     "vscode": {
-      "extensions": []
+      // Settings
+      "settings": {
+        // Editor settings
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll": "explicit",
+          "source.organizeImports": "explicit"
+        },
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "editor.rulers": [80, 120],
+        "files.eol": "\n",
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+
+        // PHP settings
+        "php.validate.enable": true,
+        "php.suggest.basic": true,
+        "[php]": {
+          "editor.tabSize": 4
+        },
+
+        // TypeScript/JavaScript settings
+        "[typescript]": {
+          "editor.tabSize": 2
+        },
+        "[typescriptreact]": {
+          "editor.tabSize": 2
+        },
+        "[javascript]": {
+          "editor.tabSize": 2
+        },
+        "[javascriptreact]": {
+          "editor.tabSize": 2
+        },
+
+        // JSON/YAML settings
+        "[json]": {},
+        "[jsonc]": {},
+        "[yaml]": {},
+
+        // Markdown settings
+        "[markdown]": {
+          "editor.wordWrap": "on"
+        },
+
+        // Git settings
+        "git.autofetch": true,
+        "git.confirmSync": false,
+        "git.enableSmartCommit": true,
+
+        // Terminal settings
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.fontSize": 14,
+
+        // File associations
+        "files.associations": {
+          "*.blade.php": "blade",
+          ".env*": "dotenv",
+          "*.conf": "nginx"
+        },
+
+        // Exclude from file explorer
+        "files.exclude": {
+          "**/.git": true,
+          "**/.DS_Store": true,
+          "**/node_modules": true,
+          "**/vendor": true
+        },
+
+        // Search exclude
+        "search.exclude": {
+          "**/node_modules": true,
+          "**/vendor": true,
+          "**/storage": true,
+          "**/dist": true,
+          "**/build": true,
+          "**/.git": true
+        },
+
+        // Intelephense settings
+        "intelephense.files.exclude": [
+          "**/node_modules/**",
+          "**/vendor/**/Tests/**",
+          "**/vendor/**/tests/**",
+          "**/vendor/**/*Test.php"
+        ],
+        "intelephense.format.enable": true,
+
+        // ESLint settings
+        "eslint.validate": [
+          "javascript",
+          "javascriptreact",
+          "typescript",
+          "typescriptreact"
+        ],
+        "eslint.workingDirectories": [
+          "./TaskMateFrontend"
+        ],
+
+        // Prettier settings
+        "prettier.enable": true,
+        "prettier.requireConfig": true,
+
+        // Laravel specific
+        "blade.format.enable": true,
+        "laravel-goto-view.folders": [
+          "TaskMateBackend/resources/views"
+        ],
+
+        // Tailwind CSS
+        "tailwindCSS.experimental.classRegex": [
+          ["clsx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"],
+          ["classnames\\(([^)]*)\\)", "'([^']*)'"],
+          ["cn\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+        ],
+        "tailwindCSS.includeLanguages": {
+          "typescript": "javascript",
+          "typescriptreact": "javascript"
+        },
+
+        // Auto-save
+        "files.autoSave": "afterDelay",
+        "files.autoSaveDelay": 1000
+      },
+
+      // Extensions
+      "extensions": [
+        // PHP Development
+        "bmewburn.vscode-intelephense-client",
+        "xdebug.php-debug",
+        "MehediDracula.php-namespace-resolver",
+        "amiralizadeh9480.laravel-extra-intellisense",
+        "onecentlin.laravel-blade",
+        "onecentlin.laravel5-snippets",
+        "shufo.vscode-blade-formatter",
+
+        // JavaScript/TypeScript Development
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next",
+        "dsznajder.es7-react-js-snippets",
+
+        // Tailwind CSS
+        "bradlc.vscode-tailwindcss",
+
+        // Git
+        "eamodio.gitlens",
+        "mhutchie.git-graph",
+        "github.vscode-pull-request-github",
+
+        // Docker
+        "ms-azuretools.vscode-docker",
+
+        // Database
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-pg",
+
+        // Testing
+        "recca0120.vscode-phpunit",
+        "ms-vscode.test-adapter-converter",
+
+        // Utilities
+        "streetsidesoftware.code-spell-checker",
+        "christian-kohler.path-intellisense",
+        "editorconfig.editorconfig",
+        "mikestead.dotenv",
+        "redhat.vscode-yaml",
+        "yzhang.markdown-all-in-one",
+        "shd101wyy.markdown-preview-enhanced",
+        "DavidAnson.vscode-markdownlint",
+
+        // REST Client
+        "humao.rest-client",
+
+        // Code Quality
+        "shardulm94.trailing-spaces",
+        "ryanluker.vscode-coverage-gutters",
+
+        // Productivity
+        "christian-kohler.npm-intellisense",
+        "wix.vscode-import-cost",
+        "wayou.vscode-todo-highlight",
+        "Gruntfuggly.todo-tree",
+
+        // AI Assistants (optional)
+        "GitHub.copilot",
+        "GitHub.copilot-chat"
+      ]
     }
-  }
-  // Use 'postCreateCommand' to run commands after the container is created.
-  // "postCreateCommand": "sudo chmod a+x \"$(pwd)\" && sudo rm -rf /var/www/html && sudo ln -s \"$(pwd)\" /var/www/html"
-  // Configure tool-specific properties.
-  // "customizations": {},
-  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-  // "remoteUser": "root"
+  },
+
+  // Lifecycle scripts
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postStartCommand": "bash .devcontainer/post-start.sh",
+
+  // Container environment variables
+  "containerEnv": {
+    "COMPOSER_ALLOW_SUPERUSER": "1",
+    "COMPOSER_NO_INTERACTION": "1"
+  },
+
+  // Mounts for better performance and persistence
+  "mounts": [
+    // Persist bash history
+    "source=taskmate-bashhistory,target=/commandhistory,type=volume",
+    // Persist Composer cache
+    "source=taskmate-composer-cache,target=/home/vscode/.composer/cache,type=volume",
+    // Persist npm cache
+    "source=taskmate-npm-cache,target=/home/vscode/.npm,type=volume"
+  ],
+
+  // Remote user
+  "remoteUser": "vscode",
+
+  // Run services needed for development
+  "runServices": [
+    "postgres",
+    "valkey",
+    "backend_api"
+  ],
+
+  // Override command to keep container running
+  "overrideCommand": true
 }

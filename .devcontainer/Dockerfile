@@ -31,4 +31,26 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && nvm install --lts" 2>&1
 
 # Install global Node.js packages for development
-RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && npm install -g concurrently" 2>&1
+RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && npm install -g concurrently typescript ts-node" 2>&1
+
+# Install additional development tools
+RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get install -y --no-install-recommends \
+        htop \
+        ncdu \
+        tree \
+        jq \
+        ripgrep \
+        bat \
+        fzf \
+        redis-tools \
+    && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+
+# Set up Oh My Zsh for vscode user (optional)
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended || true
+
+# Configure Composer to use parallel downloads
+RUN su vscode -c "composer global config --no-plugins allow-plugins.composer/installers true" 2>&1
+
+# Set working directory
+WORKDIR /workspaces/TaskMate
