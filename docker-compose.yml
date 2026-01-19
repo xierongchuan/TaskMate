@@ -65,7 +65,7 @@ services:
             DB_HOST: ${DB_HOST}
             DB_PORT: ${DB_PORT}
             DB_DATABASE: ${DB_DATABASE_TASK_MATE_BACKEND}
-            DB_USER: ${DB_USERNAME}
+            DB_USERNAME: ${DB_USERNAME}
             DB_PASSWORD: ${DB_PASSWORD}
             VCRM_API_URL: ${VCRM_API_URL:-}
             VCRM_API_TOKEN: ${VCRM_API_TOKEN:-}
@@ -100,7 +100,7 @@ services:
             DB_HOST: ${DB_HOST}
             DB_PORT: ${DB_PORT}
             DB_DATABASE: ${DB_DATABASE_TASK_MATE_BACKEND}
-            DB_USER: ${DB_USERNAME}
+            DB_USERNAME: ${DB_USERNAME}
             DB_PASSWORD: ${DB_PASSWORD}
             QUEUE_CONNECTION: valkey
         volumes:
