@@ -4,6 +4,3 @@
 [submodule "TaskMateFrontend"]
 	path = TaskMateFrontend
 	url = https://github.com/xierongchuan/TaskMateFrontend.git
-[submodule "TaskMateAPI"]
-	path = TaskMateAPI
-	url = https://github.com/xierongchuan/TaskMateAPI.git
