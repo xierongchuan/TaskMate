@@ -14,7 +14,14 @@
       "Bash(xargs:*)",
       "Bash(curl:*)",
       "Bash(php artisan:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(sudo chmod:*)",
+      "Bash(docker network inspect:*)",
+      "Bash(netstat:*)",
+      "Bash(ss:*)",
+      "Bash(ip addr:*)",
+      "Read(//home/temur/Projects/TaskMate/**)",
+      "Bash(sudo chown:*)"
     ]
   }
 }

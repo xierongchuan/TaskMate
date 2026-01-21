@@ -74,6 +74,7 @@ services:
         volumes:
             - ./TaskMateBackend/.env:/app/.env
             - ./wait-for-it.sh:/wait-for-it.sh:ro
+            - ./TaskMateBackend/storage/app/private:/app/storage/app/private
         networks:
             - web
         depends_on:
@@ -107,6 +108,7 @@ services:
             - ./TaskMateBackend/.env:/app/.env
             - ./TaskMateBackend/supervisor.conf:/etc/supervisor/conf.d/supervisor.conf:ro
             - ./TaskMateBackend/sync-scheduler.sh:/app/sync-scheduler.sh:ro
+            - ./TaskMateBackend/storage/app/private:/app/storage/app/private
         depends_on:
             - postgres
             - valkey
