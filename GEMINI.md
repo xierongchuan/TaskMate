@@ -35,13 +35,11 @@ TaskMate - это комплексная система управления з�
 - **Database**: PostgreSQL 18
 - **Cache**: Valkey (Redis-compatible)
 - **SSL**: Certbot (Let's Encrypt)
-- **API Spec**: Bruno (`TaskMateAPI`)
 
 ## 📂 Структура проекта
 
 - `TaskMateFrontend/`: Исходный код веб-приложения (React).
 - `TaskMateBackend/`: Исходный код бэкенда REST API (Laravel).
-- `TaskMateAPI/`: Коллекция API запросов (Bruno).
 - `nginx/`: Конфигурации Nginx для dev и prod.
 - `docker-compose*.yml`: Оркестрация контейнеров.
 

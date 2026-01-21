@@ -5,9 +5,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 TaskMate is a Russian-language task management system for automotive dealerships with:
-- **Frontend**: React 19 + TypeScript 5.9 + Vite 7 + Tailwind CSS (`TaskMateFrontend/`)
+- **Frontend**: React 19.1 + TypeScript 5.9 + Vite 7.1 + Tailwind CSS (`TaskMateFrontend/`)
 - **Backend**: Laravel 12 + PHP 8.4 + PostgreSQL + FrankenPHP (`TaskMateBackend/`)
-- **API Collection**: Bruno HTTP client collection (`TaskMateAPI/`)
 
 The system includes a role-based access control (employee, observer, manager, owner), multi-tenant dealership management, and three types of tasks:
 - **notification** — information-only tasks
@@ -75,6 +74,45 @@ composer dev
 - **Frontend**: http://localhost:8099
 - **Backend API**: http://localhost:8007
 - **Demo login**: admin/password, manager1/password, emp1_1/password
+
+## Technology Stack
+
+### Frontend (`TaskMateFrontend`)
+
+- **Framework**: React 19.1
+- **Build Tool**: Vite 7.1
+- **Language**: TypeScript 5.9
+- **State Management**: Zustand 5
+- **Styling**: TailwindCSS 3.4
+- **Routing**: React Router 7.9
+- **API/Query**: TanStack Query (React Query) v5
+- **Forms**: React Hook Form
+- **Icons**: Heroicons
+
+### Backend (`TaskMateBackend`)
+
+- **Framework**: Laravel 12
+- **Language**: PHP 8.4
+- **API Auth**: Laravel Sanctum
+- **Cache/Queue**: Valkey (Redis-compatible) via Predis
+- **Testing**: Pest PHP
+- **Database**: PostgreSQL 18
+
+### Infrastructure
+
+- **Containerization**: Docker Compose
+- **Application Server**: FrankenPHP v1 (Caddy-based)
+- **Reverse Proxy**: Nginx (frontend + SSL termination)
+- **Database**: PostgreSQL 18
+- **Cache**: Valkey (Redis-compatible)
+- **SSL**: Certbot (Let's Encrypt)
+
+## Project Structure
+
+- `TaskMateFrontend/`: Исходный код веб-приложения (React)
+- `TaskMateBackend/`: Исходный код бэкенда REST API (Laravel)
+- `nginx/`: Конфигурации Nginx для dev и prod
+- `docker-compose*.yml`: Оркестрация контейнеров
 
 ## Architecture
 
@@ -148,19 +186,34 @@ Base URL: `/api/v1`
 - **Minimum 50% test coverage** for backend
 - **Bearer token authentication** via Laravel Sanctum (no sessions)
 
-## Правила разработки
+## Правила разработки (User Rules)
+
+### Общие правила
+
+1. **Язык**: Русский для всех UI, комментариев и документации
+2. **Работа с инструментами**: При работе с инструментами окружения используй всё через Docker контейнеры
 
 ### Backend
-- **ВСЕГДА** запускать тесты при любых изменениях: `php artisan test` (193 теста)
-- Проверять актуальность существующих тестов при изменении логики
-- Обновлять README.md после успешного внедрения изменений
-- Приватные файлы хранятся в `storage/app/private/task_proofs/`, доступ через подписанные URL
-- Система готова к миграции на S3 (см. `config/filesystems.php`)
+
+1. **ВСЕГДА** запускать тесты при любых изменениях: `docker compose exec backend_api php artisan test` (193 теста)
+2. Проверять актуальность существующих тестов при изменении логики
+3. Обновлять README.md после успешного внедрения изменений
+4. Приватные файлы хранятся в `storage/app/private/task_proofs/`, доступ через подписанные URL
+5. Система готова к миграции на S3 (см. `config/filesystems.php`)
+6. Минимальное покрытие тестами: 50%
+7. PostgreSQL only (не MySQL-совместимый)
 
 ### Frontend & API
-- При изменении Backend **обязательно** проверять совместимость с Frontend и документацией API (Bruno)
-- При изменении Frontend сверяться с документацией API и проверять корректность запросов
-- Поддерживать синхронизацию между Backend, Frontend и API-коллекцией
+
+1. При изменении Backend **обязательно** проверять совместимость с Frontend и документацией API
+2. При изменении Frontend сверяться с документацией API и проверять корректность запросов
+3. Поддерживать синхронизацию между Backend, Frontend и API-коллекцией
+
+### Development Workflow
+
+1. Используй Docker для запуска всех сервисов: `docker compose up -d --build`
+2. Backend тесты: `docker compose exec backend_api php artisan test`
+3. Для разработки с автоперезагрузкой: `composer dev` (внутри контейнера)
 
 ## Additional Documentation
 
