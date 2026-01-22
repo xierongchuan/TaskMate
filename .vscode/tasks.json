@@ -6,7 +6,7 @@
       "type": "shell",
       "command": "php artisan migrate",
       "options": {
-        "cwd": "${workspaceFolder}/TaskMateBackend"
+        "cwd": "${workspaceFolder}/TaskMateServer"
       },
       "group": "build",
       "presentation": {
@@ -20,7 +20,7 @@
       "type": "shell",
       "command": "php artisan db:seed-demo",
       "options": {
-        "cwd": "${workspaceFolder}/TaskMateBackend"
+        "cwd": "${workspaceFolder}/TaskMateServer"
       },
       "group": "build",
       "presentation": {
@@ -34,7 +34,7 @@
       "type": "shell",
       "command": "php artisan test",
       "options": {
-        "cwd": "${workspaceFolder}/TaskMateBackend"
+        "cwd": "${workspaceFolder}/TaskMateServer"
       },
       "group": "test",
       "presentation": {
@@ -48,7 +48,7 @@
       "type": "shell",
       "command": "./vendor/bin/pint",
       "options": {
-        "cwd": "${workspaceFolder}/TaskMateBackend"
+        "cwd": "${workspaceFolder}/TaskMateServer"
       },
       "group": "build",
       "presentation": {
@@ -62,7 +62,7 @@
       "type": "shell",
       "command": "composer dev",
       "options": {
-        "cwd": "${workspaceFolder}/TaskMateBackend"
+        "cwd": "${workspaceFolder}/TaskMateServer"
       },
       "isBackground": true,
       "presentation": {
@@ -76,7 +76,7 @@
       "type": "shell",
       "command": "npm install",
       "options": {
-        "cwd": "${workspaceFolder}/TaskMateFrontend"
+        "cwd": "${workspaceFolder}/TaskMateClient"
       },
       "group": "build",
       "presentation": {
@@ -90,7 +90,7 @@
       "type": "shell",
       "command": "npm run dev",
       "options": {
-        "cwd": "${workspaceFolder}/TaskMateFrontend"
+        "cwd": "${workspaceFolder}/TaskMateClient"
       },
       "isBackground": true,
       "presentation": {
@@ -104,7 +104,7 @@
       "type": "shell",
       "command": "npm run build",
       "options": {
-        "cwd": "${workspaceFolder}/TaskMateFrontend"
+        "cwd": "${workspaceFolder}/TaskMateClient"
       },
       "group": "build",
       "presentation": {
@@ -118,7 +118,7 @@
       "type": "shell",
       "command": "npm run lint",
       "options": {
-        "cwd": "${workspaceFolder}/TaskMateFrontend"
+        "cwd": "${workspaceFolder}/TaskMateClient"
       },
       "group": "build",
       "presentation": {

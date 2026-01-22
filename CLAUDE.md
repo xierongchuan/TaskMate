@@ -6,8 +6,8 @@
 
 TaskMate — система управления задачами для автосалонов (на русском языке).
 
-- **Frontend**: React 19 + TypeScript + Vite + Tailwind (`TaskMateFrontend/`)
-- **Backend**: Laravel 12 + PHP 8.4 + PostgreSQL (`TaskMateBackend/`)
+- **Frontend**: React 19 + TypeScript + Vite + Tailwind (`TaskMateClient/`)
+- **Backend**: Laravel 12 + PHP 8.4 + PostgreSQL (`TaskMateServer/`)
 
 Роли: employee, observer, manager, owner. Типы задач: notification, completion, completion_with_proof.
 
@@ -74,13 +74,17 @@ Bearer token через Laravel Sanctum → localStorage (Zustand authStore) →
 - Приватное хранилище + подписанные URL (60 мин)
 - Валидация содержимого (magic bytes)
 
-### Фоновые задачи
+### Фоновые задачи (Scheduler + Queue)
 
-- `SendScheduledTasksJob` (5 мин) — отправка задач по appear_date
-- `CheckOverdueTasksJob` (10 мин) — просроченные задачи
-- `CheckUpcomingDeadlinesJob` (15 мин) — напоминания о дедлайнах
-- `SendDailySummaryJob` (20:00) — сводка для менеджеров
-- `ArchiveOldTasksJob` (02:00) — архивация старых задач
+**Jobs (асинхронно через Valkey):**
+
+- `ProcessTaskGeneratorsJob` (каждые 5 мин) — генерация задач из шаблонов TaskGenerator
+- `ProcessRecurringTasksJob` (каждый час) — создание экземпляров повторяющихся задач
+
+**Commands (синхронно):**
+
+- `tasks:archive-completed` (каждые 10 мин) — архивация завершённых задач (по настройкам времени)
+- `tasks:archive-overdue-after-shift` (каждый час) — архивация просроченных после закрытия смены
 
 ### API Endpoints
 
@@ -95,12 +99,12 @@ docker compose exec backend_api composer test:coverage    # С покрытие�
 docker compose exec backend_api vendor/bin/pint          # Форматирование
 
 # Frontend
-cd TaskMateFrontend && npm run dev      # Dev server
-cd TaskMateFrontend && npm run build    # Production build
-cd TaskMateFrontend && npm run lint     # ESLint
+cd TaskMateClient && npm run dev      # Dev server
+cd TaskMateClient && npm run build    # Production build
+cd TaskMateClient && npm run lint     # ESLint
 ```
 
 ## Дополнительная документация
 
-- [TaskMateFrontend/CLAUDE.md](TaskMateFrontend/CLAUDE.md) — архитектура frontend
-- [TaskMateBackend/CLAUDE.md](TaskMateBackend/CLAUDE.md) — архитектура backend
+- [TaskMateClient/CLAUDE.md](TaskMateClient/CLAUDE.md) — архитектура frontend
+- [TaskMateServer/CLAUDE.md](TaskMateServer/CLAUDE.md) — архитектура backend

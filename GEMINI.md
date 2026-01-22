@@ -6,7 +6,7 @@ TaskMate - это комплексная система управления з�
 
 ## 🛠 Технологический стек
 
-### Frontend (`TaskMateFrontend`)
+### Frontend (`TaskMateClient`)
 
 - **Framework**: React 19.1
 - **Build Tool**: Vite 7.1
@@ -18,7 +18,7 @@ TaskMate - это комплексная система управления з�
 - **Forms**: React Hook Form
 - **Icons**: Heroicons
 
-### Backend (`TaskMateBackend`)
+### Backend (`TaskMateServer`)
 
 - **Framework**: Laravel 12
 - **Language**: PHP 8.4
@@ -38,8 +38,8 @@ TaskMate - это комплексная система управления з�
 
 ## 📂 Структура проекта
 
-- `TaskMateFrontend/`: Исходный код веб-приложения (React).
-- `TaskMateBackend/`: Исходный код бэкенда REST API (Laravel).
+- `TaskMateClient/`: Исходный код веб-приложения (React).
+- `TaskMateServer/`: Исходный код бэкенда REST API (Laravel).
 - `nginx/`: Конфигурации Nginx для dev и prod.
 - `docker-compose*.yml`: Оркестрация контейнеров.
 

@@ -1,13 +1,13 @@
 services:
     backend_api:
         volumes:
-            - ./TaskMateBackend/:/app
+            - ./TaskMateServer/:/app
         ports:
             - "8007:8000"
 
     backend_scheduler:
         volumes:
-            - ./TaskMateBackend/:/app
+            - ./TaskMateServer/:/app
 
     postgres:
         ports:

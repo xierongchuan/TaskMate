@@ -31,7 +31,7 @@ services:
 
     src_frontend:
         build:
-            context: ./TaskMateFrontend/
+            context: ./TaskMateClient/
             dockerfile: Dockerfile
             args:
                 VITE_API_BASE_URL: ${VITE_API_BASE_URL}
@@ -47,7 +47,7 @@ services:
 
     backend_api:
         build:
-            context: ./TaskMateBackend/
+            context: ./TaskMateServer/
             dockerfile: Dockerfile
             target: runner
         container_name: taskmate_backend_api
@@ -72,9 +72,9 @@ services:
             # FrankenPHP настройки
             SERVER_NAME: ":8000"
         volumes:
-            - ./TaskMateBackend/.env:/app/.env
+            - ./TaskMateServer/.env:/app/.env
             - ./wait-for-it.sh:/wait-for-it.sh:ro
-            - ./TaskMateBackend/storage/app/private:/app/storage/app/private
+            - ./TaskMateServer/storage/app/private:/app/storage/app/private
         networks:
             - web
         depends_on:
@@ -83,7 +83,7 @@ services:
 
     backend_scheduler:
         build:
-            context: ./TaskMateBackend/
+            context: ./TaskMateServer/
             dockerfile: Dockerfile
             target: runner
         container_name: taskmate_backend_scheduler
@@ -105,10 +105,10 @@ services:
             DB_PASSWORD: ${DB_PASSWORD}
             QUEUE_CONNECTION: valkey
         volumes:
-            - ./TaskMateBackend/.env:/app/.env
-            - ./TaskMateBackend/supervisor.conf:/etc/supervisor/conf.d/supervisor.conf:ro
-            - ./TaskMateBackend/sync-scheduler.sh:/app/sync-scheduler.sh:ro
-            - ./TaskMateBackend/storage/app/private:/app/storage/app/private
+            - ./TaskMateServer/.env:/app/.env
+            - ./TaskMateServer/supervisor.conf:/etc/supervisor/conf.d/supervisor.conf:ro
+            - ./TaskMateServer/sync-scheduler.sh:/app/sync-scheduler.sh:ro
+            - ./TaskMateServer/storage/app/private:/app/storage/app/private
         depends_on:
             - postgres
             - valkey

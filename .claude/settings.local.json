@@ -23,7 +23,8 @@
       "Read(//home/temur/Projects/TaskMate/**)",
       "Bash(sudo chown:*)",
       "Bash( comm -23 /tmp/api_routes.txt /tmp/swagger_routes.txt)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(git submodule:*)"
     ]
   }
 }

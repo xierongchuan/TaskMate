@@ -5,8 +5,8 @@ echo "🚀 TaskMate Dev Container - Post Create Setup"
 echo "=============================================="
 
 WORKSPACE="/workspace"
-BACKEND="$WORKSPACE/TaskMateBackend"
-FRONTEND="$WORKSPACE/TaskMateFrontend"
+BACKEND="$WORKSPACE/TaskMateServer"
+FRONTEND="$WORKSPACE/TaskMateClient"
 
 # Colors
 GREEN='\033[0;32m'
@@ -95,8 +95,8 @@ alias test='php artisan test'
 alias pint='./vendor/bin/pint'
 
 # Navigation
-alias backend='cd /workspace/TaskMateBackend'
-alias frontend='cd /workspace/TaskMateFrontend'
+alias backend='cd /workspace/TaskMateServer'
+alias frontend='cd /workspace/TaskMateClient'
 alias api='cd /workspace/TaskMateAPI'
 alias ws='cd /workspace'
 
@@ -125,7 +125,7 @@ echo -e "${GREEN}✨ Dev Container setup complete!${NC}"
 echo "=============================================="
 echo ""
 echo "📚 Quick Start:"
-echo "  1. cd /workspace/TaskMateBackend"
+echo "  1. cd /workspace/TaskMateServer"
 echo "  2. php artisan migrate --force"
 echo "  3. php artisan db:seed-demo"
 echo "  4. php artisan storage:link"

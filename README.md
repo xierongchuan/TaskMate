@@ -12,8 +12,8 @@
 ├─ nginx/
 │   ├─ nginx.local.conf                     # Nginx для локальной разработки
 │   └─ nginx.prod.conf                      # Nginx для продакшна (SSL)
-├─ TaskMateFrontend/                        # Frontend (React 19, TypeScript 5.9, Vite 7)
-├─ TaskMateBackend/                         # Backend API (Laravel 12, PHP 8.4, FrankenPHP)
+├─ TaskMateClient/                        # Frontend (React 19, TypeScript 5.9, Vite 7)
+├─ TaskMateServer/                         # Backend API (Laravel 12, PHP 8.4, FrankenPHP)
 └─ ...
 ```
 
@@ -191,7 +191,7 @@ docker compose exec backend_api php artisan storage:link
 1. `default` — основные задачи (генерация задач, системные джобы).
 2. `notifications` — отправка уведомлений (приоритетная очередь).
 
-Конфигурация Supervisor: `TaskMateBackend/supervisor.conf`.
+Конфигурация Supervisor: `TaskMateServer/supervisor.conf`.
 
 ---
 
@@ -255,15 +255,15 @@ docker compose exec backend_api php artisan storage:link
 
 ```bash
 # 1. Установить права на весь проект (код защищен)
-chmod -R 755 /home/temur/Projects/TaskMate/TaskMateBackend
+chmod -R 755 /home/temur/Projects/TaskMate/TaskMateServer
 
 # 2. Разрешить запись в директории storage и bootstrap/cache
-chmod -R 775 /home/temur/Projects/TaskMate/TaskMateBackend/storage
-chmod -R 775 /home/temur/Projects/TaskMate/TaskMateBackend/bootstrap/cache
+chmod -R 775 /home/temur/Projects/TaskMate/TaskMateServer/storage
+chmod -R 775 /home/temur/Projects/TaskMate/TaskMateServer/bootstrap/cache
 
 # 3. Установить права на файлы внутри этих директорий
-find /home/temur/Projects/TaskMate/TaskMateBackend/storage -type f -exec chmod 664 {} \;
-find /home/temur/Projects/TaskMate/TaskMateBackend/bootstrap/cache -type f -exec chmod 664 {} \;
+find /home/temur/Projects/TaskMate/TaskMateServer/storage -type f -exec chmod 664 {} \;
+find /home/temur/Projects/TaskMate/TaskMateServer/bootstrap/cache -type f -exec chmod 664 {} \;
 
 # 4. КРИТИЧНО: Добавить вашего пользователя в группу www-data
 sudo usermod -a -G www-data $USER
