@@ -249,9 +249,11 @@ docker compose exec backend_api php artisan storage:link
 
 ### Permission denied (Docker Build/Runtime)
 
-Если возникает ошибка `permission denied` при работе с `storage/framework/testing` или другими директориями, это связано с конфликтом прав между вашим пользователем на хосте и пользователем `www-data` внутри контейнера.
+Если возникает ошибка `permission denied` при работе с `storage` или `bootstrap/cache`, либо Queue Worker не может записывать логи, это связано с правами доступа внутри контейнеров.
 
 **Решение (рекомендуемое):**
+
+Исправьте права доступа через хост-систему:
 
 ```bash
 # 1. Установить права на весь проект (код защищен)
@@ -272,18 +274,34 @@ sudo usermod -a -G www-data $USER
 newgrp www-data
 ```
 
+Или через Docker контейнеры:
+
+```bash
+# 1. Исправить права для основного API контейнера
+docker compose exec backend_api chmod -R 775 storage bootstrap/cache
+docker compose exec backend_api chown -R www-data:www-data storage bootstrap/cache
+
+# 2. Исправить права для контейнера планировщика (Queue Worker)
+docker compose exec backend_scheduler chmod -R 775 storage bootstrap/cache
+docker compose exec backend_scheduler chown -R www-data:www-data storage bootstrap/cache
+
+# 3. Перезапустить контейнеры для применения изменений
+docker compose restart backend_api backend_scheduler
+```
+
 **Объяснение прав:**
 
-- `755` (rwxr-xr-x) — для кода: владелец может читать/писать/выполнять, остальные только читать
-- `775` (rwxrwxr-x) — для storage/cache: владелец и группа могут писать (контейнер сможет создавать файлы)
-- `664` (rw-rw-r--) — для файлов: владелец и группа могут читать/писать
+- `775` (rwxrwxr-x) — для директорий: владелец и группа могут писать, остальные только читать
+- `www-data:www-data` — владелец и группа, под которыми работает PHP внутри контейнера
 
-Это безопасное решение, которое:
+**Почему это безопасно:**
 
-- ✅ Позволяет контейнерам (www-data) создавать и изменять файлы
-- ✅ Позволяет вашему пользователю редактировать код
-- ✅ Защищает код от случайного изменения (нет 777)
-- ✅ Не дает избыточных прав "всем пользователям"
+- ✅ Команды выполняются ВНУТРИ контейнера, не затрагивая хостовую систему
+- ✅ Не требует sudo на хосте
+- ✅ Устанавливает правильного владельца для процессов PHP
+- ✅ Не дает избыточных прав (нет 777)
+- ✅ Позволяет Queue Worker записывать логи без ошибок
+- ✅ Работает одинаково на Linux/macOS/Windows (WSL2)
 
 ### Database connection
 
