@@ -1,7 +1,7 @@
 # Dev Container for TaskMate
 # Based on FrankenPHP with PHP 8.4
 
-FROM dunglas/frankenphp:1-php8.4
+FROM docker.io/dunglas/frankenphp:1-php8.4
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -48,7 +48,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
 RUN pecl install redis && docker-php-ext-enable redis
 
 # Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=docker.io/library/composer:latest /usr/bin/composer /usr/bin/composer
 
 # Install Node.js 22 LTS
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
@@ -59,8 +59,16 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 # Verify installations
 RUN php -v && composer --version && node -v && npm -v
 
+# Пользователь для rootless Podman (UID совпадает с хостом)
+RUN useradd -m -u 1000 -s /bin/bash devuser \
+    && usermod -aG www-data devuser \
+    && mkdir -p /workspace \
+    && chown devuser:devuser /workspace
+
 # Set working directory
 WORKDIR /workspace
+
+USER devuser
 
 # Default command
 CMD ["sleep", "infinity"]

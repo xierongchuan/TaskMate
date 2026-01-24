@@ -6,9 +6,22 @@
 
 ### 1. Предварительные требования
 
-- **Docker Desktop** или **Docker Engine** + **Docker Compose**
+- **Docker Desktop** / **Docker Engine** + **Docker Compose** — или **Podman** (см. ниже)
 - **Visual Studio Code** с расширением **Dev Containers**
   - Установите: `ms-vscode-remote.remote-containers`
+
+#### Для Podman (Fedora / RHEL / SELinux)
+
+```bash
+# Установка
+sudo dnf install podman-compose podman-docker
+
+# Настройка VSCode (Settings JSON):
+"dev.containers.dockerPath": "podman",
+"dev.containers.dockerComposePath": "podman-compose"
+```
+
+> **Важно**: Dev Container для Podman использует `userns_mode: "keep-id"` и `x-podman: in_pod: false` для корректного маппинга UID в rootless-режиме. Подробнее см. секцию «Podman» ниже.
 
 ### 2. Открытие проекта в Dev Container
 
@@ -100,9 +113,8 @@ dcl               # docker compose logs -f
 ### Навигация
 
 ```bash
-backend           # cd /workspaces/TaskMate/TaskMateBackend
-frontend          # cd /workspaces/TaskMate/TaskMateFrontend
-api               # cd /workspaces/TaskMate/TaskMateAPI
+backend           # cd /workspace/TaskMateServer
+frontend          # cd /workspace/TaskMateClient
 ```
 
 ### Git
@@ -253,6 +265,88 @@ Dev Container автоматически настраивает VS Code:
 - ✅ Подсветка синтаксиса для Blade, .env, nginx.conf
 - ✅ Исключение vendor и node_modules из поиска
 
+## 🐧 Podman (Fedora / RHEL / SELinux)
+
+Dev Container полностью совместим с Podman в rootless-режиме. Ниже описаны ключевые отличия от Docker.
+
+### Конфигурация devcontainer для Podman
+
+Файл `docker-compose.devcontainer.yml` содержит Podman-специфичные настройки:
+
+```yaml
+x-podman:
+  in_pod: false          # Отключает pods (конфликтуют с userns_mode)
+
+services:
+  devcontainer:
+    userns_mode: "keep-id"  # Маппинг UID хоста → контейнера
+    volumes:
+      - .:/workspace:z      # SELinux метка :z для shared volume
+```
+
+### Почему нужен `userns_mode: "keep-id"`
+
+В rootless Podman без этой опции UID 1000 внутри контейнера НЕ соответствует UID 1000 на хосте. Файлы проекта, примонтированные в `/workspace`, будут недоступны для записи.
+
+С `keep-id` UID хоста (1000) маппится на UID контейнера (devuser, 1000) — файлы доступны без проблем с правами.
+
+### Почему нужен `x-podman: in_pod: false`
+
+`podman-compose` по умолчанию объединяет все сервисы в один pod. Флаг `--userns` несовместим с pods, что вызывает ошибку:
+
+```
+Error: --userns and --pod cannot be set together
+```
+
+Отключение pods переключает сетевое взаимодействие на обычные bridge-сети (как в Docker Compose).
+
+### SELinux метки на volumes
+
+На системах с SELinux каждый bind-mount должен иметь метку:
+
+- `:z` (shared) — том монтируется в несколько контейнеров
+- `:Z` (private) — том уникален для одного контейнера
+- Без метки — SELinux заблокирует доступ с ошибкой `permission denied`
+
+### Полные имена образов
+
+Podman не использует Docker Hub по умолчанию. Все `FROM` в Dockerfile должны содержать полный путь:
+
+```dockerfile
+FROM docker.io/dunglas/frankenphp:1-php8.4          # не frankenphp:1-php8.4
+COPY --from=docker.io/library/composer:latest ...   # не composer:latest
+```
+
+Без `docker.io/` префикса сборка завершится ошибкой:
+```
+short-name resolution enforced but cannot prompt without a TTY
+```
+
+### Запуск Dev Container с Podman
+
+```bash
+# Убедитесь, что .env файл существует
+cp .env.example .env  # и заполните DB_USERNAME, DB_PASSWORD
+
+# Создайте директории для certbot (bind-mounts)
+mkdir -p certbot/www certbot/conf
+
+# Откройте VSCode и запустите Dev Container
+# F1 → "Dev Containers: Reopen in Container"
+```
+
+### Проверка работы
+
+```bash
+# Внутри Dev Container:
+id                    # uid=1000(devuser) gid=1000(devuser)
+ls -la /workspace/    # Файлы принадлежат devuser
+touch /workspace/test && rm /workspace/test  # Запись работает
+php -v && node -v && composer --version      # Инструменты доступны
+```
+
+---
+
 ## 🚨 Troubleshooting
 
 ### Dev Container не запускается
@@ -280,6 +374,32 @@ docker compose logs postgres
 # Установить правильные права для Laravel
 backend
 chmod -R 775 storage bootstrap/cache
+```
+
+### Podman: "short-name resolution enforced"
+
+Образ в Dockerfile не содержит полный путь. Добавьте `docker.io/` префикс:
+```dockerfile
+# Было:
+FROM node:22-alpine
+# Стало:
+FROM docker.io/library/node:22-alpine
+```
+
+### Podman: "--userns and --pod cannot be set together"
+
+Отсутствует `x-podman: in_pod: false` в compose-файле. Добавьте в начало `docker-compose.devcontainer.yml`:
+```yaml
+x-podman:
+  in_pod: false
+```
+
+### Podman: "SELinux permission denied" при монтировании
+
+Добавьте метку `:z` или `:Z` к volume:
+```yaml
+volumes:
+  - .:/workspace:z    # :z для shared, :Z для private
 ```
 
 ### npm install/composer install не работает

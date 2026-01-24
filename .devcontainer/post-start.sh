@@ -41,17 +41,17 @@ for i in {1..15}; do
 done
 
 # Ensure permissions
-if [ -d "/workspace/TaskMateBackend/storage" ]; then
-    chmod -R 775 /workspace/TaskMateBackend/storage 2>/dev/null || true
-    chmod -R 775 /workspace/TaskMateBackend/bootstrap/cache 2>/dev/null || true
+if [ -d "/workspace/TaskMateServer/storage" ]; then
+    chmod -R 775 /workspace/TaskMateServer/storage 2>/dev/null || true
+    chmod -R 775 /workspace/TaskMateServer/bootstrap/cache 2>/dev/null || true
 fi
 
 echo ""
 print_status "Dev Container is ready!"
 echo ""
 echo "📂 Workspace: /workspace"
-echo "   ├── TaskMateBackend/   (Laravel API)"
-echo "   └── TaskMateFrontend/  (React App)"
+echo "   ├── TaskMateServer/   (Laravel API)"
+echo "   └── TaskMateClient/  (React App)"
 echo ""
 echo "🚀 Quick commands:"
 echo "   backend   - Go to Laravel project"

@@ -15,7 +15,7 @@ F1 → "Dev Containers: Reopen in Container"
 
 ```bash
 # Перейдите в Backend
-cd TaskMateBackend
+cd TaskMateServer
 
 # Запустите миграции
 php artisan migrate --force
@@ -31,13 +31,13 @@ php artisan storage:link
 
 **Терминал 1 - Backend:**
 ```bash
-cd TaskMateBackend
+cd TaskMateServer
 composer dev
 ```
 
 **Терминал 2 - Frontend:**
 ```bash
-cd TaskMateFrontend
+cd TaskMateClient
 npm run dev
 ```
 
@@ -69,8 +69,8 @@ dcl backend_api     # Логи Backend
 dcr postgres        # Перезапуск БД
 
 # Навигация
-backend             # cd TaskMateBackend
-frontend            # cd TaskMateFrontend
+backend             # cd TaskMateServer
+frontend            # cd TaskMateClient
 ```
 
 ### VS Code shortcuts
@@ -94,7 +94,7 @@ docker compose ps
 psql -h postgres -U postgres -c "SELECT version();"
 
 # Запустить тесты
-cd TaskMateBackend && php artisan test
+cd TaskMateServer && php artisan test
 ```
 
 ---
@@ -109,7 +109,7 @@ docker compose restart postgres
 
 ### "Permission denied" для storage
 ```bash
-cd TaskMateBackend
+cd TaskMateServer
 chmod -R 775 storage bootstrap/cache
 ```
 

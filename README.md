@@ -12,8 +12,8 @@
 ├─ nginx/
 │   ├─ nginx.local.conf                     # Nginx для локальной разработки
 │   └─ nginx.prod.conf                      # Nginx для продакшна (SSL)
-├─ TaskMateClient/                        # Frontend (React 19, TypeScript 5.9, Vite 7)
-├─ TaskMateServer/                         # Backend API (Laravel 12, PHP 8.4, FrankenPHP)
+├─ TaskMateClient/                          # Frontend (React 19, TypeScript 5.9, Vite 7)
+├─ TaskMateServer/                          # Backend API (Laravel 12, PHP 8.4, FrankenPHP)
 └─ ...
 ```
 
@@ -110,6 +110,114 @@ docker compose exec backend_api php artisan storage:link
 - **Admin**: `admin` / `password`
 - **Manager**: `manager1` / `password`
 - **Employees**: `emp1_1` / `password` (и другие)
+
+---
+
+## 🐧 Запуск через Podman (Fedora / RHEL / SELinux)
+
+На Fedora, RHEL и других дистрибутивах с SELinux рекомендуется использовать Podman вместо Docker. Podman работает в rootless-режиме и не требует демона.
+
+### Предварительные требования
+
+```bash
+# Установка podman-compose и совместимости с Docker CLI
+sudo dnf install podman-compose podman-docker
+
+# Проверка версий
+podman --version          # >= 4.0
+podman-compose --version  # >= 1.0
+```
+
+### Особенности настройки для Podman
+
+#### 1. Полные имена образов (обязательно)
+
+Podman не использует Docker Hub по умолчанию. Все образы в `Dockerfile` и `docker-compose.yml` должны содержать полный путь:
+
+```dockerfile
+# Правильно:
+FROM docker.io/library/node:22-alpine
+FROM docker.io/dunglas/frankenphp:1-php8.4
+COPY --from=docker.io/library/composer:latest /usr/bin/composer /usr/bin/composer
+
+# Неправильно (вызовет ошибку "short-name resolution enforced"):
+FROM node:22-alpine
+FROM dunglas/frankenphp:1-php8.4
+```
+
+В `docker-compose.yml`:
+```yaml
+image: docker.io/library/postgres:18.1     # не просто postgres:18.1
+image: docker.io/valkey/valkey:9.0.1        # не просто valkey/valkey:9.0.1
+image: docker.io/library/nginx:latest       # не просто nginx:latest
+```
+
+#### 2. SELinux метки на bind-монтирования
+
+На системах с SELinux все bind-mount'ы должны иметь суффикс `:Z` (приватный) или `:z` (общий):
+
+```yaml
+volumes:
+    - ./TaskMateServer/:/app:z              # :z — том разделяется между контейнерами
+    - ./valkey.conf:/etc/valkey/valkey.conf:ro,Z  # :Z — приватный для контейнера
+```
+
+- `:z` — для томов, которые монтируются в несколько контейнеров (`.env`, `storage/app/private`)
+- `:Z` — для томов, уникальных для одного контейнера (конфиги, скрипты)
+
+#### 3. Pods и userns_mode (devcontainer)
+
+`podman-compose` по умолчанию создаёт pod для всех сервисов. Это конфликтует с `userns_mode: "keep-id"` (нужен для корректного маппинга UID в rootless-режиме).
+
+Решение — отключить pods в compose-файле devcontainer'а:
+
+```yaml
+x-podman:
+  in_pod: false
+
+services:
+  devcontainer:
+    userns_mode: "keep-id"
+    # ...
+```
+
+#### 4. Замена /dev/null для SELinux
+
+SELinux блокирует монтирование `/dev/null` в контейнеры. Используется файл-заглушка:
+
+```yaml
+# Вместо /dev/null:
+- ./nginx/empty.sh:/docker-entrypoint.d/20-envsubst-on-templates.sh:ro,Z
+```
+
+### Запуск проекта через Podman
+
+```bash
+# 1. Создать .env файл
+cp .env.example .env
+# Заполнить DB_USERNAME, DB_PASSWORD и другие переменные
+
+# 2. Создать необходимые директории
+mkdir -p certbot/www certbot/conf
+
+# 3. Сборка и запуск
+podman compose up -d --build
+
+# 4. Инициализация backend (как с Docker)
+podman compose exec backend_api composer install
+podman compose exec backend_api php artisan migrate --force
+podman compose exec backend_api php artisan db:seed-demo
+podman compose exec backend_api php artisan storage:link
+```
+
+### Частые ошибки Podman
+
+| Ошибка | Причина | Решение |
+|--------|---------|---------|
+| `short-name resolution enforced` | Образ без `docker.io/` префикса | Добавить полный путь к образу |
+| `--userns and --pod cannot be set` | `userns_mode` + pods | Добавить `x-podman: in_pod: false` |
+| `SELinux: permission denied` | Нет метки на bind-mount | Добавить `:Z` или `:z` к volume |
+| `container name already in use` | Контейнер не удалён | `podman compose down` и повторить |
 
 ---
 

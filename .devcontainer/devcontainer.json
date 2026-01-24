@@ -43,6 +43,8 @@
   "customizations": {
     "vscode": {
       "settings": {
+        "dev.containers.dockerPath": "podman",
+        "dev.containers.dockerComposePath": "podman-compose",
         "editor.formatOnSave": true,
         "editor.tabSize": 4,
         "editor.insertSpaces": true,
@@ -105,5 +107,5 @@
     "COMPOSER_ALLOW_SUPERUSER": "1"
   },
   // Remote user
-  "remoteUser": "www-data"
+  "remoteUser": "devuser"
 }

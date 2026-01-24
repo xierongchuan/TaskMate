@@ -1,17 +1,17 @@
 services:
     valkey:
-        image: valkey/valkey:9.0.1
+        image: docker.io/valkey/valkey:9.0.1
         container_name: taskmate_valkey
         restart: on-failure
         volumes:
             - valkey_data:/data
-            - ./valkey.conf:/etc/valkey/valkey.conf:ro
+            - ./valkey.conf:/etc/valkey/valkey.conf:ro,Z
         command: [ "valkey-server", "/etc/valkey/valkey.conf" ]
         networks:
             - web
 
     postgres:
-        image: postgres:18.1
+        image: docker.io/library/postgres:18.1
         container_name: taskmate_postgres
         restart: on-failure
         env_file: [ ./.env ]
@@ -20,7 +20,7 @@ services:
             POSTGRES_PASSWORD: ${DB_PASSWORD}
         volumes:
             - postgres_data:/var/lib/postgresql
-            - ./init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh:ro
+            - ./init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh:ro,Z
         networks:
             - web
         healthcheck:
@@ -72,9 +72,9 @@ services:
             # FrankenPHP настройки
             SERVER_NAME: ":8000"
         volumes:
-            - ./TaskMateServer/.env:/app/.env
-            - ./wait-for-it.sh:/wait-for-it.sh:ro
-            - ./TaskMateServer/storage/app/private:/app/storage/app/private
+            - ./TaskMateServer/.env:/app/.env:z
+            - ./wait-for-it.sh:/wait-for-it.sh:ro,Z
+            - ./TaskMateServer/storage/app/private:/app/storage/app/private:z
         networks:
             - web
         depends_on:
@@ -105,10 +105,10 @@ services:
             DB_PASSWORD: ${DB_PASSWORD}
             QUEUE_CONNECTION: valkey
         volumes:
-            - ./TaskMateServer/.env:/app/.env
-            - ./TaskMateServer/supervisor.conf:/etc/supervisor/conf.d/supervisor.conf:ro
-            - ./TaskMateServer/sync-scheduler.sh:/app/sync-scheduler.sh:ro
-            - ./TaskMateServer/storage/app/private:/app/storage/app/private
+            - ./TaskMateServer/.env:/app/.env:z
+            - ./TaskMateServer/supervisor.conf:/etc/supervisor/conf.d/supervisor.conf:ro,Z
+            - ./TaskMateServer/sync-scheduler.sh:/app/sync-scheduler.sh:ro,Z
+            - ./TaskMateServer/storage/app/private:/app/storage/app/private:z
         depends_on:
             - postgres
             - valkey
@@ -119,12 +119,12 @@ services:
             disable: true
 
     nginx:
-        image: nginx:latest
+        image: docker.io/library/nginx:latest
         container_name: taskmate_nginx
         restart: on-failure
         volumes:
-            - ./certbot/www:/var/www/certbot
-            - ./certbot/conf:/etc/letsencrypt
+            - ./certbot/www:/var/www/certbot:z
+            - ./certbot/conf:/etc/letsencrypt:z
         networks:
             - web
         depends_on:
@@ -132,11 +132,11 @@ services:
             - backend_api
 
     certbot:
-        image: certbot/certbot:latest
+        image: docker.io/certbot/certbot:latest
         container_name: taskmate_certbot
         volumes:
-            - ./certbot/conf:/etc/letsencrypt
-            - ./certbot/www:/var/www/certbot
+            - ./certbot/conf:/etc/letsencrypt:z
+            - ./certbot/www:/var/www/certbot:z
         networks:
             - web
         profiles: [ "certbot" ]
