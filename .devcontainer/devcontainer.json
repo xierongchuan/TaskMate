@@ -12,12 +12,17 @@
   "forwardPorts": [
     5432,
     6379,
+    8000,
     8007,
     8099,
     5173
   ],
   // Port labels for better identification
   "portsAttributes": {
+    "8000": {
+      "label": "Backend API (artisan serve)",
+      "onAutoForward": "notify"
+    },
     "5432": {
       "label": "PostgreSQL",
       "onAutoForward": "notify"

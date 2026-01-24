@@ -18,6 +18,7 @@ services:
         environment:
             POSTGRES_USER: ${DB_USERNAME}
             POSTGRES_PASSWORD: ${DB_PASSWORD}
+            POSTGRES_DB: ${DB_DATABASE_TASK_MATE_BACKEND}
         volumes:
             - postgres_data:/var/lib/postgresql
             - ./init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh:ro,Z
@@ -110,11 +111,13 @@ services:
             - ./TaskMateServer/sync-scheduler.sh:/app/sync-scheduler.sh:ro,Z
             - ./TaskMateServer/storage/app/private:/app/storage/app/private:z
         depends_on:
-            - postgres
-            - valkey
+            postgres:
+                condition: service_healthy
+            valkey:
+                condition: service_started
         networks:
             - web
-        command: [ "supervisord", "-n", "-c", "/etc/supervisor/conf.d/supervisor.conf" ]
+        command: [ "/bin/bash", "-c", "chown -R www-data:www-data /app/storage && chmod -R g+rwX /app/storage && find /app/storage -type d -exec chmod g+s {} + && exec supervisord -n -c /etc/supervisor/conf.d/supervisor.conf" ]
         healthcheck:
             disable: true
 
