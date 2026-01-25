@@ -10,6 +10,26 @@ services:
         networks:
             - web
 
+    rabbitmq:
+        image: docker.io/library/rabbitmq:4-management-alpine
+        container_name: taskmate_rabbitmq
+        restart: on-failure
+        ports:
+            - "15672:15672"
+        environment:
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-taskmate}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-taskmate_secret}
+            RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
+        volumes:
+            - rabbitmq_data:/var/lib/rabbitmq
+        networks:
+            - web
+        healthcheck:
+            test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
     postgres:
         image: docker.io/library/postgres:18.1
         container_name: taskmate_postgres
@@ -70,6 +90,11 @@ services:
             DB_PASSWORD: ${DB_PASSWORD}
             VCRM_API_URL: ${VCRM_API_URL:-}
             VCRM_API_TOKEN: ${VCRM_API_TOKEN:-}
+            RABBITMQ_HOST: rabbitmq
+            RABBITMQ_PORT: 5672
+            RABBITMQ_USER: ${RABBITMQ_USER:-taskmate}
+            RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-taskmate_secret}
+            RABBITMQ_VHOST: ${RABBITMQ_VHOST:-/}
             # FrankenPHP настройки
             SERVER_NAME: ":8000"
         volumes:
@@ -81,6 +106,7 @@ services:
         depends_on:
             - postgres
             - valkey
+            - rabbitmq
 
     backend_scheduler:
         build:
@@ -143,18 +169,23 @@ services:
             DB_DATABASE: ${DB_DATABASE_TASK_MATE_BACKEND}
             DB_USERNAME: ${DB_USERNAME}
             DB_PASSWORD: ${DB_PASSWORD}
-            QUEUE_CONNECTION: valkey
+            QUEUE_CONNECTION: rabbitmq
+            RABBITMQ_HOST: rabbitmq
+            RABBITMQ_PORT: 5672
+            RABBITMQ_USER: ${RABBITMQ_USER:-taskmate}
+            RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-taskmate_secret}
+            RABBITMQ_VHOST: ${RABBITMQ_VHOST:-/}
         volumes:
             - ./TaskMateServer/.env:/app/.env:z
             - ./TaskMateServer/storage/app/private:/app/storage/app/private:z
         depends_on:
             postgres:
                 condition: service_healthy
-            valkey:
-                condition: service_started
+            rabbitmq:
+                condition: service_healthy
         networks:
             - web
-        command: [ "/bin/bash", "-c", "rm -f /app/bootstrap/cache/services.php /app/bootstrap/cache/packages.php && php /app/artisan package:discover && exec php /app/artisan queue:work valkey --queue=file_cleanup --sleep=5 --tries=3 --max-time=3600" ]
+        command: [ "/bin/bash", "-c", "rm -f /app/bootstrap/cache/services.php /app/bootstrap/cache/packages.php && php /app/artisan package:discover && exec php /app/artisan queue:work rabbitmq --queue=file_cleanup --sleep=5 --tries=3 --max-time=3600" ]
 
     nginx:
         image: docker.io/library/nginx:latest
@@ -183,6 +214,7 @@ volumes:
     valkey_data:
     postgres_data:
     pgadmin_data:
+    rabbitmq_data:
 
 
 networks:
