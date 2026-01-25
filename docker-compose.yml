@@ -90,6 +90,7 @@ services:
             DB_PASSWORD: ${DB_PASSWORD}
             VCRM_API_URL: ${VCRM_API_URL:-}
             VCRM_API_TOKEN: ${VCRM_API_TOKEN:-}
+            QUEUE_CONNECTION: rabbitmq
             RABBITMQ_HOST: rabbitmq
             RABBITMQ_PORT: 5672
             RABBITMQ_USER: ${RABBITMQ_USER:-taskmate}
@@ -130,7 +131,12 @@ services:
             DB_DATABASE: ${DB_DATABASE_TASK_MATE_BACKEND}
             DB_USERNAME: ${DB_USERNAME}
             DB_PASSWORD: ${DB_PASSWORD}
-            QUEUE_CONNECTION: valkey
+            QUEUE_CONNECTION: rabbitmq
+            RABBITMQ_HOST: rabbitmq
+            RABBITMQ_PORT: 5672
+            RABBITMQ_USER: ${RABBITMQ_USER:-taskmate}
+            RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-taskmate_secret}
+            RABBITMQ_VHOST: ${RABBITMQ_VHOST:-/}
         volumes:
             - ./TaskMateServer/.env:/app/.env:z
             - ./TaskMateServer/supervisor.conf:/etc/supervisor/conf.d/supervisor.conf:ro,Z
@@ -139,8 +145,8 @@ services:
         depends_on:
             postgres:
                 condition: service_healthy
-            valkey:
-                condition: service_started
+            rabbitmq:
+                condition: service_healthy
         networks:
             - web
         command: [ "/bin/bash", "-c", "chown -R www-data:www-data /app/storage && chmod -R g+rwX /app/storage && find /app/storage -type d -exec chmod g+s {} + && exec supervisord -n -c /etc/supervisor/conf.d/supervisor.conf" ]
@@ -186,6 +192,164 @@ services:
         networks:
             - web
         command: [ "/bin/bash", "-c", "rm -f /app/bootstrap/cache/services.php /app/bootstrap/cache/packages.php && php /app/artisan package:discover && exec php /app/artisan queue:work rabbitmq --queue=file_cleanup --sleep=5 --tries=3 --max-time=3600" ]
+
+    backend_worker_proof_upload:
+        build:
+            context: ./TaskMateServer/
+            dockerfile: Dockerfile
+            target: runner
+        container_name: taskmate_worker_proof_upload
+        restart: unless-stopped
+        env_file: [ ./.env ]
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        environment:
+            APP_DEBUG: ${DEBUG_MODE}
+            APP_ENV: ${APP_ENVIRONMENT}
+            APP_KEY: ${TASK_MATE_BACKEND_APP_KEY}
+            APP_URL: ${TASK_MATE_BACKEND_APP_URL}
+            APP_TIMEZONE: ${APP_TIMEZONE}
+            DB_CONNECTION: ${DB_CONNECTION}
+            DB_HOST: ${DB_HOST}
+            DB_PORT: ${DB_PORT}
+            DB_DATABASE: ${DB_DATABASE_TASK_MATE_BACKEND}
+            DB_USERNAME: ${DB_USERNAME}
+            DB_PASSWORD: ${DB_PASSWORD}
+            QUEUE_CONNECTION: rabbitmq
+            RABBITMQ_HOST: rabbitmq
+            RABBITMQ_PORT: 5672
+            RABBITMQ_USER: ${RABBITMQ_USER:-taskmate}
+            RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-taskmate_secret}
+            RABBITMQ_VHOST: ${RABBITMQ_VHOST:-/}
+        volumes:
+            - ./TaskMateServer/.env:/app/.env:z
+            - ./TaskMateServer/storage/app/private:/app/storage/app/private:z
+        depends_on:
+            postgres:
+                condition: service_healthy
+            rabbitmq:
+                condition: service_healthy
+        networks:
+            - web
+        command: [ "/bin/bash", "-c", "rm -f /app/bootstrap/cache/services.php /app/bootstrap/cache/packages.php && php /app/artisan package:discover && exec php /app/artisan queue:work rabbitmq --queue=proof_upload --sleep=5 --tries=3 --max-time=3600" ]
+
+    backend_worker_shared_proof:
+        build:
+            context: ./TaskMateServer/
+            dockerfile: Dockerfile
+            target: runner
+        container_name: taskmate_worker_shared_proof
+        restart: unless-stopped
+        env_file: [ ./.env ]
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        environment:
+            APP_DEBUG: ${DEBUG_MODE}
+            APP_ENV: ${APP_ENVIRONMENT}
+            APP_KEY: ${TASK_MATE_BACKEND_APP_KEY}
+            APP_URL: ${TASK_MATE_BACKEND_APP_URL}
+            APP_TIMEZONE: ${APP_TIMEZONE}
+            DB_CONNECTION: ${DB_CONNECTION}
+            DB_HOST: ${DB_HOST}
+            DB_PORT: ${DB_PORT}
+            DB_DATABASE: ${DB_DATABASE_TASK_MATE_BACKEND}
+            DB_USERNAME: ${DB_USERNAME}
+            DB_PASSWORD: ${DB_PASSWORD}
+            QUEUE_CONNECTION: rabbitmq
+            RABBITMQ_HOST: rabbitmq
+            RABBITMQ_PORT: 5672
+            RABBITMQ_USER: ${RABBITMQ_USER:-taskmate}
+            RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-taskmate_secret}
+            RABBITMQ_VHOST: ${RABBITMQ_VHOST:-/}
+        volumes:
+            - ./TaskMateServer/.env:/app/.env:z
+            - ./TaskMateServer/storage/app/private:/app/storage/app/private:z
+        depends_on:
+            postgres:
+                condition: service_healthy
+            rabbitmq:
+                condition: service_healthy
+        networks:
+            - web
+        command: [ "/bin/bash", "-c", "rm -f /app/bootstrap/cache/services.php /app/bootstrap/cache/packages.php && php /app/artisan package:discover && exec php /app/artisan queue:work rabbitmq --queue=shared_proof_upload --sleep=5 --tries=3 --max-time=3600" ]
+
+    backend_worker_generators:
+        build:
+            context: ./TaskMateServer/
+            dockerfile: Dockerfile
+            target: runner
+        container_name: taskmate_worker_generators
+        restart: unless-stopped
+        env_file: [ ./.env ]
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        environment:
+            APP_DEBUG: ${DEBUG_MODE}
+            APP_ENV: ${APP_ENVIRONMENT}
+            APP_KEY: ${TASK_MATE_BACKEND_APP_KEY}
+            APP_URL: ${TASK_MATE_BACKEND_APP_URL}
+            APP_TIMEZONE: ${APP_TIMEZONE}
+            DB_CONNECTION: ${DB_CONNECTION}
+            DB_HOST: ${DB_HOST}
+            DB_PORT: ${DB_PORT}
+            DB_DATABASE: ${DB_DATABASE_TASK_MATE_BACKEND}
+            DB_USERNAME: ${DB_USERNAME}
+            DB_PASSWORD: ${DB_PASSWORD}
+            QUEUE_CONNECTION: rabbitmq
+            RABBITMQ_HOST: rabbitmq
+            RABBITMQ_PORT: 5672
+            RABBITMQ_USER: ${RABBITMQ_USER:-taskmate}
+            RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-taskmate_secret}
+            RABBITMQ_VHOST: ${RABBITMQ_VHOST:-/}
+        volumes:
+            - ./TaskMateServer/.env:/app/.env:z
+        depends_on:
+            postgres:
+                condition: service_healthy
+            rabbitmq:
+                condition: service_healthy
+        networks:
+            - web
+        command: [ "/bin/bash", "-c", "rm -f /app/bootstrap/cache/services.php /app/bootstrap/cache/packages.php && php /app/artisan package:discover && exec php /app/artisan queue:work rabbitmq --queue=task_generators --sleep=5 --tries=3 --max-time=3600" ]
+
+    backend_worker_recurring:
+        build:
+            context: ./TaskMateServer/
+            dockerfile: Dockerfile
+            target: runner
+        container_name: taskmate_worker_recurring
+        restart: unless-stopped
+        env_file: [ ./.env ]
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        environment:
+            APP_DEBUG: ${DEBUG_MODE}
+            APP_ENV: ${APP_ENVIRONMENT}
+            APP_KEY: ${TASK_MATE_BACKEND_APP_KEY}
+            APP_URL: ${TASK_MATE_BACKEND_APP_URL}
+            APP_TIMEZONE: ${APP_TIMEZONE}
+            DB_CONNECTION: ${DB_CONNECTION}
+            DB_HOST: ${DB_HOST}
+            DB_PORT: ${DB_PORT}
+            DB_DATABASE: ${DB_DATABASE_TASK_MATE_BACKEND}
+            DB_USERNAME: ${DB_USERNAME}
+            DB_PASSWORD: ${DB_PASSWORD}
+            QUEUE_CONNECTION: rabbitmq
+            RABBITMQ_HOST: rabbitmq
+            RABBITMQ_PORT: 5672
+            RABBITMQ_USER: ${RABBITMQ_USER:-taskmate}
+            RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-taskmate_secret}
+            RABBITMQ_VHOST: ${RABBITMQ_VHOST:-/}
+        volumes:
+            - ./TaskMateServer/.env:/app/.env:z
+        depends_on:
+            postgres:
+                condition: service_healthy
+            rabbitmq:
+                condition: service_healthy
+        networks:
+            - web
+        command: [ "/bin/bash", "-c", "rm -f /app/bootstrap/cache/services.php /app/bootstrap/cache/packages.php && php /app/artisan package:discover && exec php /app/artisan queue:work rabbitmq --queue=recurring_tasks --sleep=5 --tries=3 --max-time=3600" ]
 
     nginx:
         image: docker.io/library/nginx:latest
