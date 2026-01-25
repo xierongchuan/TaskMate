@@ -385,6 +385,24 @@ docker compose up -d --build
 
 Это перезапустит startup-команду scheduler, которая исправит все права на storage.
 
+### Изменения кода не применяются (Worker / Scheduler)
+
+Контейнеры `backend_worker_*` и `backend_scheduler` копируют код при сборке, а не монтируют его. Поэтому после изменений в PHP-коде нужно пересобрать образы:
+
+```bash
+# Пересборка без кэша (рекомендуется при проблемах)
+docker compose build --no-cache && docker compose up -d
+
+# Или пересборка конкретного сервиса
+docker compose build --no-cache backend_worker_shared_proof && docker compose up -d backend_worker_shared_proof
+```
+
+**Когда это нужно:**
+- Изменили Job (`app/Jobs/`)
+- Изменили Service (`app/Services/`)
+- Изменили Console Command (`app/Console/Commands/`)
+- Любой PHP-код, выполняемый в worker/scheduler контейнерах
+
 **Для Podman rootless:** На хостовой системе файлы в `storage/app/private/` будут видны под sub-UID (например, 524320), а не под вашим пользователем. Это нормально — внутри контейнера они принадлежат www-data.
 
 ### Database connection
