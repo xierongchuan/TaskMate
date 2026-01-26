@@ -218,6 +218,43 @@ podman compose exec backend_api php artisan storage:link
 | `--userns and --pod cannot be set` | `userns_mode` + pods | Добавить `x-podman: in_pod: false` |
 | `SELinux: permission denied` | Нет метки на bind-mount | Добавить `:Z` или `:z` к volume |
 | `container name already in use` | Контейнер не удалён | `podman compose down` и повторить |
+| Изменения кода не применяются после `build` | podman-compose не перетегирует образ | См. раздел "Пересборка образов в Podman" ниже |
+
+### Пересборка образов в Podman (важно!)
+
+**Проблема:** `podman-compose build` создаёт новый образ, но **не перетегирует** его. Старый образ остаётся с тегом `latest`, и контейнер продолжает использовать старый код.
+
+**Симптомы:**
+- После `docker compose build && docker compose up -d` изменения не видны
+- `docker images` показывает старое время создания образа
+- Новый образ создан с тегом `<none>:<none>`
+
+**Решение — удалить старый образ перед сборкой:**
+
+```bash
+# 1. Остановить зависимые контейнеры (например, nginx зависит от frontend)
+podman stop taskmate_nginx taskmate_src_frontend
+
+# 2. Удалить контейнеры
+podman rm taskmate_nginx taskmate_src_frontend
+
+# 3. Удалить старый образ (теперь тег освободится)
+podman rmi localhost/taskmate_src_frontend:latest
+
+# 4. Пересобрать (тег применится к новому образу)
+docker compose build src_frontend
+
+# 5. Запустить
+docker compose up -d src_frontend nginx
+```
+
+**Проверка что образ обновился:**
+
+```bash
+# ID образа в контейнере должен совпадать с последним собранным
+docker inspect taskmate_src_frontend --format '{{.Image}}' | head -c 12
+docker images taskmate_src_frontend --format '{{.ID}}'
+```
 
 ---
 
