@@ -240,6 +240,33 @@ docker compose exec backend_api vendor/bin/pint
 | Permission denied (storage) | `docker compose down && docker compose up -d --build` |
 | Изменения не применяются в worker | `docker compose build --no-cache && docker compose up -d` |
 | Database connection refused | Проверьте `DB_HOST=postgres` в `.env` |
+| Изменения frontend не применяются (submodule) | См. ниже |
+
+### Изменения в git submodule не применяются при Docker build
+
+**Проблема:** TaskMateClient и TaskMateServer — это git submodules. Docker/Podman при сборке использует `COPY . .`, который копирует файлы из рабочей директории. Однако незакоммиченные изменения в submodule могут не попадать в контекст сборки даже с `--no-cache`.
+
+**Решение:** Собрать frontend локально с примонтированным volume и скопировать результат в контейнер:
+
+```bash
+# В директории TaskMateClient:
+cd TaskMateClient
+
+# Сборка с volume mount (обходит кеш Docker)
+podman run --rm -v .:/app:Z -w /app node:22-alpine sh -c "npm ci && npm run build"
+
+# Копирование в работающий контейнер
+docker cp ./dist/. taskmate_src_frontend:/usr/share/nginx/html/
+```
+
+Альтернатива — закоммитить изменения в submodule перед сборкой:
+```bash
+cd TaskMateClient
+git add -A && git commit -m "WIP"
+cd ..
+docker compose build src_frontend --no-cache
+docker compose up -d src_frontend
+```
 
 ---
 
