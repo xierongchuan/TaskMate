@@ -222,6 +222,9 @@ docker compose exec backend_api php artisan test
 # Frontend dev server
 cd TaskMateClient && npm run dev
 
+# Пересборка frontend (обходит кеш Docker)
+./scripts/rebuild-frontend.sh
+
 # Форматирование PHP
 docker compose exec backend_api vendor/bin/pint
 ```
@@ -233,30 +236,56 @@ docker compose exec backend_api vendor/bin/pint
 2. Добавляйте `:z` или `:Z` к volume mounts
 3. После `podman compose build` удаляйте старый образ для применения изменений
 
+### Rootless Podman: проблема с правами доступа
+
+При использовании rootless Podman контейнер может не иметь доступа к примонтированным директориям (CORS 403, "Permission denied"). Это происходит из-за user namespace mapping.
+
+**Решение:** Перед первым запуском выполните:
+```bash
+podman unshare chown -R 1000:1000 TaskMateServer/
+docker compose up -d
+```
+
+Если контейнеры уже запущены:
+```bash
+podman unshare chown -R 1000:1000 TaskMateServer/
+docker restart taskmate_backend_api
+```
+
 ## Troubleshooting
 
 | Проблема | Решение |
 |----------|---------|
 | Permission denied (storage) | `docker compose down && docker compose up -d --build` |
+| CORS 403 / Permission denied в rootless Podman | `podman unshare chown -R 1000:1000 TaskMateServer/` затем `docker restart taskmate_backend_api` |
 | Изменения не применяются в worker | `docker compose build --no-cache && docker compose up -d` |
 | Database connection refused | Проверьте `DB_HOST=postgres` в `.env` |
+| Изменения Tailwind/CSS не применяются | См. "Полная пересборка frontend" ниже |
 | Изменения frontend не применяются (submodule) | См. ниже |
 
 ### Изменения в git submodule не применяются при Docker build
 
 **Проблема:** TaskMateClient и TaskMateServer — это git submodules. Docker/Podman при сборке использует `COPY . .`, который копирует файлы из рабочей директории. Однако незакоммиченные изменения в submodule могут не попадать в контекст сборки даже с `--no-cache`.
 
-**Решение:** Собрать frontend локально с примонтированным volume и скопировать результат в контейнер:
+**Решение:** Использовать скрипт пересборки:
 
 ```bash
-# В директории TaskMateClient:
+./scripts/rebuild-frontend.sh
+```
+
+Или вручную:
+```bash
+# 1. Перейти в директорию frontend
 cd TaskMateClient
 
-# Сборка с volume mount (обходит кеш Docker)
+# 2. Сборка с volume mount (обходит кеш Docker)
 podman run --rm -v .:/app:Z -w /app node:22-alpine sh -c "npm ci && npm run build"
 
-# Копирование в работающий контейнер
+# 3. Копирование в работающий контейнер
 docker cp ./dist/. taskmate_src_frontend:/usr/share/nginx/html/
+
+# 4. Перезапуск nginx для применения изменений
+docker restart taskmate_src_frontend
 ```
 
 Альтернатива — закоммитить изменения в submodule перед сборкой:
@@ -267,6 +296,32 @@ cd ..
 docker compose build src_frontend --no-cache
 docker compose up -d src_frontend
 ```
+
+### Полная пересборка frontend (Tailwind/CSS изменения)
+
+При изменении `tailwind.config.js`, `index.css` или других конфигурационных файлов, обычный `--no-cache` может не помочь, т.к. Docker/Podman кеширует слои образа. Нужно полностью удалить образ и пересобрать:
+
+```bash
+# Для Docker:
+docker rmi taskmate_src_frontend:latest 2>/dev/null || true
+docker compose build --no-cache src_frontend
+docker compose up -d src_frontend
+
+# Для Podman:
+podman rmi localhost/taskmate_src_frontend:latest 2>/dev/null || true
+podman compose build --no-cache src_frontend
+podman compose up -d src_frontend
+```
+
+**Проверка применения изменений:**
+```bash
+# Проверить, что CSS содержит новые значения
+docker exec taskmate_src_frontend cat /usr/share/nginx/html/assets/*.css | grep -o '#171717\|#262626' | head -5
+```
+
+Если изменения всё ещё не применяются:
+1. Очистите кеш браузера (Ctrl+Shift+R)
+2. Проверьте, что nginx перезагрузился: `docker restart taskmate_src_frontend`
 
 ---
 
