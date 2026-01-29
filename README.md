@@ -13,6 +13,12 @@ flowchart TB
         DateUtils[dateTime.ts<br/>UTC ↔ Local]
     end
 
+    subgraph Bot["Telegram Bot (Python 3.12 + aiogram 3)"]
+        BotHandlers[Handlers]
+        BotScheduler[APScheduler<br/>Polling]
+        BotSessions[Sessions<br/>Valkey]
+    end
+
     subgraph Server["Backend (Laravel 12 + PHP 8.4)"]
         API[REST API<br/>/api/v1]
         Controllers[Controllers]
@@ -20,20 +26,21 @@ flowchart TB
         Models[Eloquent Models]
         TimeHelper[TimeHelper<br/>UTC only]
         TZHelper[SettingsService<br/>getTimezone]
-        Jobs[Jobs<br/>ProcessTaskGenerators<br/>ProcessRecurringTasks]
+        Jobs[Jobs<br/>ProcessTaskGenerators<br/>StoreTaskProofs<br/>DeleteProofFile]
     end
 
     subgraph Infrastructure["Infrastructure"]
         FrankenPHP[FrankenPHP]
         Nginx[Nginx]
         Postgres[(PostgreSQL 18)]
-        Valkey[(Valkey<br/>Cache + Queue)]
+        Valkey[(Valkey<br/>Cache)]
+        RabbitMQ[(RabbitMQ<br/>Queue)]
         Storage[Private Storage<br/>Signed URLs]
     end
 
     subgraph Workers["Background Workers"]
-        Scheduler[Scheduler<br/>cron]
-        QueueWorker[Queue Worker<br/>Supervisor]
+        Scheduler[Scheduler<br/>Supervisor + cron]
+        QueueWorkers[Queue Workers ×4<br/>cleanup · proof_upload<br/>shared_proof · generators]
     end
 
     UI --> TanStack
@@ -41,7 +48,12 @@ flowchart TB
     DateUtils -->|"UTC ISO 8601"| API
     Zustand --> UI
 
+    BotHandlers -->|"REST API"| API
+    BotSessions --> Valkey
+    BotScheduler --> BotHandlers
+
     Nginx --> FrankenPHP
+    Nginx --> Client
     FrankenPHP --> API
     API --> Controllers
     Controllers --> Services
@@ -50,10 +62,10 @@ flowchart TB
     Models --> TZHelper
     Models --> Postgres
 
-    Jobs --> Valkey
+    Jobs --> RabbitMQ
     Scheduler --> Jobs
-    QueueWorker --> Jobs
-
+    QueueWorkers --> RabbitMQ
+    Services --> Valkey
     Services --> Storage
 ```
 
@@ -209,9 +221,9 @@ podman compose exec backend_api php artisan storage:link
 | Процесс | Интервал | Описание |
 |---------|----------|----------|
 | `ProcessTaskGeneratorsJob` | 5 мин | Генерация задач из шаблонов |
-| `ProcessRecurringTasksJob` | 1 час | Создание повторяющихся задач |
 | `tasks:archive-completed` | 10 мин | Архивация выполненных задач |
 | `tasks:archive-overdue-after-shift` | 1 час | Архивация просроченных после смены |
+| `proofs:cleanup-temp` | 1 час | Очистка временных файлов доказательств |
 
 ## Разработка
 
