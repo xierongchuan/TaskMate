@@ -50,6 +50,9 @@ podman compose exec backend_api php artisan storage:link
 5. **PostgreSQL only** — не использовать MySQL-совместимый синтаксис.
 6. **Даты в UTC** — хранение, передача, сравнение — всё в UTC.
 7. **Покрытие** — минимум 50% тестами для backend.
+8. **SOLID** — строгое соблюдение принципов SOLID при проектировании и разработке.
+
+
 
 ## Workflow задач
 
