@@ -138,13 +138,13 @@ localTimeToUtc(timeString)   // "15:00" local → "10:00" UTC
 
 ```bash
 # Запуск
-docker compose up -d --build
+podman compose up -d --build
 
 # Инициализация (первый раз)
-docker compose exec backend_api composer install
-docker compose exec backend_api php artisan migrate --force
-docker compose exec backend_api php artisan db:seed-demo
-docker compose exec backend_api php artisan storage:link
+podman compose exec backend_api composer install
+podman compose exec backend_api php artisan migrate --force
+podman compose exec backend_api php artisan db:seed-demo
+podman compose exec backend_api php artisan storage:link
 ```
 
 **Доступ:**
@@ -217,7 +217,7 @@ docker compose exec backend_api php artisan storage:link
 
 ```bash
 # Backend тесты (ОБЯЗАТЕЛЬНО после изменений)
-docker compose exec backend_api php artisan test
+podman compose exec backend_api php artisan test
 
 # Frontend dev server
 cd TaskMateClient && npm run dev
@@ -226,7 +226,7 @@ cd TaskMateClient && npm run dev
 ./scripts/rebuild-frontend.sh
 
 # Форматирование PHP
-docker compose exec backend_api vendor/bin/pint
+podman compose exec backend_api vendor/bin/pint
 ```
 
 ## Podman (Fedora/RHEL)
@@ -243,7 +243,7 @@ docker compose exec backend_api vendor/bin/pint
 **Решение:** Перед первым запуском выполните:
 ```bash
 podman unshare chown -R 1000:1000 TaskMateServer/
-docker compose up -d
+podman compose up -d
 ```
 
 Если контейнеры уже запущены:
@@ -256,9 +256,9 @@ docker restart taskmate_backend_api
 
 | Проблема | Решение |
 |----------|---------|
-| Permission denied (storage) | `docker compose down && docker compose up -d --build` |
+| Permission denied (storage) | `podman compose down && podman compose up -d --build` |
 | CORS 403 / Permission denied в rootless Podman | `podman unshare chown -R 1000:1000 TaskMateServer/` затем `docker restart taskmate_backend_api` |
-| Изменения не применяются в worker | `docker compose build --no-cache && docker compose up -d` |
+| Изменения не применяются в worker | `podman compose build --no-cache && podman compose up -d` |
 | Database connection refused | Проверьте `DB_HOST=postgres` в `.env` |
 | Изменения Tailwind/CSS не применяются | См. "Полная пересборка frontend" ниже |
 | Изменения frontend не применяются (submodule) | См. ниже |
@@ -293,8 +293,8 @@ docker restart taskmate_src_frontend
 cd TaskMateClient
 git add -A && git commit -m "WIP"
 cd ..
-docker compose build src_frontend --no-cache
-docker compose up -d src_frontend
+podman compose build src_frontend --no-cache
+podman compose up -d src_frontend
 ```
 
 ### Полная пересборка frontend (Tailwind/CSS изменения)
@@ -304,8 +304,8 @@ docker compose up -d src_frontend
 ```bash
 # Для Docker:
 docker rmi taskmate_src_frontend:latest 2>/dev/null || true
-docker compose build --no-cache src_frontend
-docker compose up -d src_frontend
+podman compose build --no-cache src_frontend
+podman compose up -d src_frontend
 
 # Для Podman:
 podman rmi localhost/taskmate_src_frontend:latest 2>/dev/null || true

@@ -130,7 +130,7 @@
     {
       "label": "Docker: Show Services Status",
       "type": "shell",
-      "command": "docker compose ps",
+      "command": "podman compose ps",
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -143,7 +143,7 @@
     {
       "label": "Docker: Restart All Services",
       "type": "shell",
-      "command": "docker compose restart",
+      "command": "podman compose restart",
       "options": {
         "cwd": "${workspaceFolder}"
       },

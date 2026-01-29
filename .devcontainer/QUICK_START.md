@@ -88,7 +88,7 @@ frontend            # cd TaskMateClient
 
 ```bash
 # Проверить статус сервисов
-docker compose ps
+podman compose ps
 
 # Проверить подключение к БД
 psql -h postgres -U postgres -c "SELECT version();"
@@ -103,7 +103,7 @@ cd TaskMateServer && php artisan test
 
 ### "Database connection failed"
 ```bash
-docker compose restart postgres
+podman compose restart postgres
 # Подождите 10 секунд и повторите
 ```
 

@@ -37,12 +37,12 @@ if [[ "$1" == "--init" ]] || [[ "$2" == "--init" ]]; then
 fi
 
 echo "🏗️  Сборка и запуск контейнеров..."
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build --remove-orphans
+podman compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build --remove-orphans
 
 echo "⏳ Ожидание готовности базы данных..."
 # Ждём готовности PostgreSQL (до 60 секунд)
 RETRIES=12
-until docker compose exec -T postgres pg_isready -U "${DB_USERNAME:-postgres}" > /dev/null 2>&1 || [ $RETRIES -eq 0 ]; do
+until podman compose exec -T postgres pg_isready -U "${DB_USERNAME:-postgres}" > /dev/null 2>&1 || [ $RETRIES -eq 0 ]; do
     echo "   Ожидание PostgreSQL... (осталось попыток: $RETRIES)"
     RETRIES=$((RETRIES-1))
     sleep 5
@@ -55,51 +55,51 @@ fi
 log_info "PostgreSQL готов"
 
 echo "📦 Установка зависимостей PHP..."
-docker compose exec -T backend_api composer install --optimize-autoloader --no-dev --no-interaction
+podman compose exec -T backend_api composer install --optimize-autoloader --no-dev --no-interaction
 
 # Первоначальная инициализация
 if [ "$FIRST_RUN" = true ]; then
     echo "🔑 Генерация ключа приложения..."
-    docker compose exec -T backend_api php artisan key:generate --force
+    podman compose exec -T backend_api php artisan key:generate --force
 
     echo "🔗 Создание символической ссылки для storage..."
-    docker compose exec -T backend_api php artisan storage:link
+    podman compose exec -T backend_api php artisan storage:link
 fi
 
 echo "🗄️  Выполнение миграций..."
-docker compose exec -T backend_api php artisan migrate --force
+podman compose exec -T backend_api php artisan migrate --force
 
 # Первоначальный seed (только при --init)
 if [ "$FIRST_RUN" = true ]; then
     log_warn "Запуск начальных сидов..."
-    docker compose exec -T backend_api php artisan db:seed --force
+    podman compose exec -T backend_api php artisan db:seed --force
 fi
 
 echo "⚡ Оптимизация Laravel..."
-docker compose exec -T backend_api php artisan config:cache
-docker compose exec -T backend_api php artisan route:cache
-docker compose exec -T backend_api php artisan view:cache
-docker compose exec -T backend_api php artisan event:cache
+podman compose exec -T backend_api php artisan config:cache
+podman compose exec -T backend_api php artisan route:cache
+podman compose exec -T backend_api php artisan view:cache
+podman compose exec -T backend_api php artisan event:cache
 
 echo "🔄 Перезапуск очереди задач..."
-docker compose exec -T backend_scheduler php artisan queue:restart || true
+podman compose exec -T backend_scheduler php artisan queue:restart || true
 
 echo "🧹 Очистка старых образов..."
 docker image prune -f
 
 echo "📊 Проверка статуса сервисов..."
-docker compose -f docker-compose.yml -f docker-compose.prod.yml ps
+podman compose -f docker-compose.yml -f docker-compose.prod.yml ps
 
 log_info "Деплой завершен!"
 
 echo ""
 echo "📝 Полезные команды:"
-echo "   Логи:      docker compose logs -f backend_api"
-echo "   Статус:    docker compose ps"
-echo "   Миграции:  docker compose exec backend_api php artisan migrate:status"
+echo "   Логи:      podman compose logs -f backend_api"
+echo "   Статус:    podman compose ps"
+echo "   Миграции:  podman compose exec backend_api php artisan migrate:status"
 echo ""
 
 if [ "$FIRST_RUN" = true ]; then
     log_warn "Не забудьте настроить SSL сертификаты:"
-    echo "   docker compose --profile certbot run certbot certonly --webroot -w /var/www/certbot -d your-domain.com"
+    echo "   podman compose --profile certbot run certbot certonly --webroot -w /var/www/certbot -d your-domain.com"
 fi

@@ -29,7 +29,7 @@ TaskMate - это комплексная система управления з�
 
 ### Infrastructure
 
-- **Containerization**: Docker Compose
+- **Containerization**: podman compose
 - **Application Server**: FrankenPHP v1 (Caddy-based)
 - **Reverse Proxy**: Nginx (frontend + SSL termination)
 - **Database**: PostgreSQL 18
@@ -48,7 +48,7 @@ TaskMate - это комплексная система управления з�
 ### Запуск (Docker)
 
 ```bash
-docker compose up -d --build
+podman compose up -d --build
 ```
 
 ### Тестирование
@@ -56,7 +56,7 @@ docker compose up -d --build
 **Backend (Pest):**
 
 ```bash
-docker compose exec backend_api php artisan test
+podman compose exec backend_api php artisan test
 ```
 
 ## ⚠️ Правила разработки (User Rules)

@@ -6,7 +6,7 @@
 
 ### 1. Предварительные требования
 
-- **Docker Desktop** / **Docker Engine** + **Docker Compose** — или **Podman** (см. ниже)
+- **Docker Desktop** / **Docker Engine** + **podman compose** — или **Podman** (см. ниже)
 - **Visual Studio Code** с расширением **Dev Containers**
   - Установите: `ms-vscode-remote.remote-containers`
 
@@ -103,11 +103,11 @@ pint              # ./vendor/bin/pint (форматирование)
 ### Docker
 
 ```bash
-dc                # docker compose
-dcu               # docker compose up -d
-dcd               # docker compose down
-dcr               # docker compose restart
-dcl               # docker compose logs -f
+dc                # podman compose
+dcu               # podman compose up -d
+dcd               # podman compose down
+dcr               # podman compose restart
+dcl               # podman compose logs -f
 ```
 
 ### Навигация
@@ -298,7 +298,7 @@ services:
 Error: --userns and --pod cannot be set together
 ```
 
-Отключение pods переключает сетевое взаимодействие на обычные bridge-сети (как в Docker Compose).
+Отключение pods переключает сетевое взаимодействие на обычные bridge-сети (как в podman compose).
 
 ### SELinux метки на volumes
 
@@ -359,13 +359,13 @@ php -v && node -v && composer --version      # Инструменты досту
 
 ```bash
 # Проверить статус сервисов
-docker compose ps
+podman compose ps
 
 # Перезапустить PostgreSQL
-docker compose restart postgres
+podman compose restart postgres
 
 # Проверить логи
-docker compose logs postgres
+podman compose logs postgres
 ```
 
 ### Проблемы с правами доступа
@@ -421,7 +421,7 @@ frontend && npm install
 ## 🔗 Полезные ссылки
 
 - [Dev Containers Documentation](https://code.visualstudio.com/docs/devcontainers/containers)
-- [Docker Compose Documentation](https://docs.docker.com/compose/)
+- [podman compose Documentation](https://docs.docker.com/compose/)
 - [Laravel Documentation](https://laravel.com/docs)
 - [React Documentation](https://react.dev/)
 - [Vite Documentation](https://vitejs.dev/)
