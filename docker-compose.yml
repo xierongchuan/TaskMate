@@ -335,6 +335,27 @@ services:
             - web
         profiles: [ "certbot" ]
 
+    telegram_bot:
+        build:
+            context: ./TaskMateTelegramBot/
+            dockerfile: Dockerfile
+        container_name: taskmate_bot
+        restart: on-failure
+        env_file: [ ./.env ]
+        environment:
+            TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+            TASKMATE_API_URL: http://backend_api:8000/api/v1
+            VALKEY_HOST: valkey
+            VALKEY_PORT: 6379
+            VALKEY_DB: 1
+            LOG_LEVEL: ${BOT_LOG_LEVEL:-INFO}
+        networks:
+            - web
+        depends_on:
+            - backend_api
+            - valkey
+        profiles: [ "bot" ]
+
 volumes:
     valkey_data:
     postgres_data:
