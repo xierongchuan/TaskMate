@@ -17,6 +17,10 @@ services:
         ports:
             - "6379:6379"
 
+    rabbitmq:
+        ports:
+            - "15672:15672"
+
     src_frontend:
         ports:
             - "8099:80"
@@ -45,3 +49,6 @@ services:
         networks:
             - web
         profiles: [ "dev" ]
+
+volumes:
+    pgadmin_data:

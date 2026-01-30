@@ -85,7 +85,7 @@ echo "🔄 Перезапуск очереди задач..."
 podman compose exec -T backend_scheduler php artisan queue:restart || true
 
 echo "🧹 Очистка старых образов..."
-docker image prune -f
+podman image prune -f
 
 echo "📊 Проверка статуса сервисов..."
 podman compose -f docker-compose.yml -f docker-compose.prod.yml ps
