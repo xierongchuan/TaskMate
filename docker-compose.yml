@@ -239,6 +239,32 @@ services:
             - backend_api
             - valkey
 
+    telegram_bot_worker:
+        build:
+            context: ./TaskMateTelegramBot/
+            dockerfile: Dockerfile
+        container_name: taskmate_bot_worker
+        restart: on-failure
+        env_file: [ ./.env ]
+        command: ["python", "-m", "src.worker"]
+        environment:
+            TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+            TASKMATE_API_URL: http://backend_api:8000/api/v1
+            VALKEY_HOST: valkey
+            VALKEY_PORT: 6379
+            VALKEY_DB: 1
+            RABBITMQ_HOST: rabbitmq
+            RABBITMQ_PORT: 5672
+            RABBITMQ_USER: ${RABBITMQ_USER:-taskmate}
+            RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-taskmate_secret}
+            RABBITMQ_VHOST: ${RABBITMQ_VHOST:-/}
+            LOG_LEVEL: ${BOT_LOG_LEVEL:-INFO}
+        networks:
+            - web
+        depends_on:
+            - valkey
+            - rabbitmq
+
 
 volumes:
     valkey_data:
