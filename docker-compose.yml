@@ -238,7 +238,7 @@ services:
         depends_on:
             - backend_api
             - valkey
-        profiles: [ "bot" ]
+
 
 volumes:
     valkey_data:
