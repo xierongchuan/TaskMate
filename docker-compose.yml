@@ -127,6 +127,7 @@ services:
             <<: *backend-env
             VCRM_API_URL: ${VCRM_API_URL:-}
             VCRM_API_TOKEN: ${VCRM_API_TOKEN:-}
+            RATE_LIMIT_TRUSTED_IPS: ${RATE_LIMIT_TRUSTED_IPS:-}
             SERVER_NAME: ":8000"
         volumes:
             - ./TaskMateServer/.env:/app/.env:z
