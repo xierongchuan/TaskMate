@@ -27,7 +27,7 @@ $RUNTIME run --rm -v ".:/app${VOLUME_OPT}" -w /app node:22-alpine sh -c "npm ci 
 echo "📦 Копирование в контейнер..."
 docker cp ./dist/. "$CONTAINER_NAME:/usr/share/nginx/html/"
 
-echo "🔄 Перезапуск nginx..."
+echo "🔄 Перезапуск frontend..."
 docker restart "$CONTAINER_NAME"
 
 echo "✅ Готово! Обновите страницу (Ctrl+Shift+R)"
