@@ -92,6 +92,6 @@ cd TaskMateClient && npm run build
 cd TaskMateClient && npm run lint
 
 # Deploy
-./deploy_prod.sh --pull --init   # первый раз
-./deploy_prod.sh --pull          # обновление
+./scripts/deploy_prod.sh --pull --init   # первый раз
+./scripts/deploy_prod.sh --pull          # обновление
 ```

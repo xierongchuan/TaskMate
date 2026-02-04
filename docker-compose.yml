@@ -88,7 +88,7 @@ services:
             POSTGRES_DB: ${DB_DATABASE_TASK_MATE_BACKEND}
         volumes:
             - postgres_data:/var/lib/postgresql
-            - ./init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh:ro,Z
+            - ./scripts/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh:ro,Z
         networks:
             - web
         healthcheck:
@@ -131,7 +131,7 @@ services:
             SERVER_NAME: ":8000"
         volumes:
             - ./TaskMateServer/.env:/app/.env:z
-            - ./wait-for-it.sh:/wait-for-it.sh:ro,Z
+            - ./scripts/wait-for-it.sh:/wait-for-it.sh:ro,Z
             - ./TaskMateServer/storage/app/private:/app/storage/app/private:z
         networks:
             - web
