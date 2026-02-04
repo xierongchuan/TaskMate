@@ -13,7 +13,7 @@ Monorepo с git submodules:
 | Telegram Bot | `TaskMateTelegramBot/` | Python 3.12 + aiogram 3 |
 | Инфраструктура | корень | podman compose + Nginx + Valkey + RabbitMQ |
 
-Детальные инструкции — в `CLAUDE.md` каждого модуля.
+Детальные инструкции — в `GEMINI.md` каждого модуля.
 
 ## Доменная модель
 
