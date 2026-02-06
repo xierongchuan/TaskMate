@@ -2,5 +2,5 @@
 set -e
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
-  CREATE DATABASE taskmatebackend_test;
+  CREATE DATABASE app_test;
 EOSQL

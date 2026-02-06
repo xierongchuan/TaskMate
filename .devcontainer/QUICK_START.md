@@ -65,7 +65,7 @@ pint                # Форматирование PHP
 
 # Docker
 dc ps               # Статус сервисов
-dcl backend_api     # Логи Backend
+dcl api             # Логи Backend
 dcr postgres        # Перезапуск БД
 
 # Навигация

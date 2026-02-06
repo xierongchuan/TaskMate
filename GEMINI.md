@@ -27,10 +27,10 @@ Monorepo с git submodules:
 podman compose up -d --build
 
 # Первый запуск backend
-podman compose exec backend_api composer install
-podman compose exec backend_api php artisan migrate --force
-podman compose exec backend_api php artisan db:seed-demo
-podman compose exec backend_api php artisan storage:link
+podman compose exec api composer install
+podman compose exec api php artisan migrate --force
+podman compose exec api php artisan db:seed-demo
+podman compose exec api php artisan storage:link
 ```
 
 **Demo:** admin/password, manager1/password, emp1_1/password
@@ -45,7 +45,7 @@ podman compose exec backend_api php artisan storage:link
 
 1. **Язык** — русский для UI, комментариев, документации. Код на английском.
 2. **Docker** — все команды через контейнеры. Не ставить зависимости на хосте.
-3. **Тесты** — ВСЕГДА `podman compose exec backend_api php artisan test` после backend-изменений.
+3. **Тесты** — ВСЕГДА `podman compose exec api php artisan test` после backend-изменений.
 4. **Синхронизация** — при изменении API (backend) проверять frontend, и наоборот.
 5. **PostgreSQL only** — не использовать MySQL-совместимый синтаксис.
 6. **Даты в UTC** — хранение, передача, сравнение — всё в UTC.
@@ -65,27 +65,27 @@ podman compose exec backend_api php artisan storage:link
 
 ```yaml
 # Основные
-taskmate_postgres, taskmate_valkey, taskmate_rabbitmq
-taskmate_src_frontend, taskmate_backend_api
+svc-postgres, svc-valkey, svc-rabbitmq
+svc-frontend, svc-api
 
 # Workers (RabbitMQ)
-taskmate_worker_cleanup         # file_cleanup
-taskmate_worker_proof_upload    # proof_upload
-taskmate_worker_shared_proof    # shared_proof_upload
-taskmate_worker_generators      # task_generators
+svc-worker-cleanup         # file_cleanup
+svc-worker-proof           # proof_upload
+svc-worker-shared          # shared_proof_upload
+svc-worker-generator       # task_generators
 
 # Инфра
-taskmate_backend_scheduler      # Supervisor (cron)
-taskmate_nginx                  # Reverse proxy
+svc-scheduler              # Supervisor (cron)
+svc-nginx                  # Reverse proxy
 ```
 
 ## Команды
 
 ```bash
 # Backend
-podman compose exec backend_api php artisan test
-podman compose exec backend_api composer test:coverage
-podman compose exec backend_api vendor/bin/pint
+podman compose exec api php artisan test
+podman compose exec api composer test:coverage
+podman compose exec api vendor/bin/pint
 
 # Frontend
 cd TaskMateClient && npm run build

@@ -1,11 +1,11 @@
 services:
-    backend_api:
+    api:
         volumes:
             - ./TaskMateServer/:/app:z
         ports:
             - "8007:8000"
 
-    backend_scheduler:
+    scheduler:
         volumes:
             - ./TaskMateServer/:/app:z
 
@@ -21,7 +21,7 @@ services:
         ports:
             - "15672:15672"
 
-    src_frontend: {}
+    frontend: {}
 
     nginx:
         ports:
@@ -32,7 +32,7 @@ services:
 
     pgadmin:
         image: docker.io/dpage/pgadmin4:latest
-        container_name: taskmate_pgadmin
+        container_name: svc-pgadmin
         restart: on-failure
         env_file: [ ./.env ]
         environment:

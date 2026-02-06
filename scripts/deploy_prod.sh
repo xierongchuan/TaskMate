@@ -55,34 +55,34 @@ fi
 log_info "PostgreSQL готов"
 
 echo "📦 Установка зависимостей PHP..."
-podman compose exec -T backend_api composer install --optimize-autoloader --no-dev --no-interaction
+podman compose exec -T api composer install --optimize-autoloader --no-dev --no-interaction
 
 # Первоначальная инициализация
 if [ "$FIRST_RUN" = true ]; then
     echo "🔑 Генерация ключа приложения..."
-    podman compose exec -T backend_api php artisan key:generate --force
+    podman compose exec -T api php artisan key:generate --force
 
     echo "🔗 Создание символической ссылки для storage..."
-    podman compose exec -T backend_api php artisan storage:link
+    podman compose exec -T api php artisan storage:link
 fi
 
 echo "🗄️  Выполнение миграций..."
-podman compose exec -T backend_api php artisan migrate --force
+podman compose exec -T api php artisan migrate --force
 
 # Первоначальный seed (только при --init)
 if [ "$FIRST_RUN" = true ]; then
     log_warn "Запуск начальных сидов..."
-    podman compose exec -T backend_api php artisan db:seed --force
+    podman compose exec -T api php artisan db:seed --force
 fi
 
 echo "⚡ Оптимизация Laravel..."
-podman compose exec -T backend_api php artisan config:cache
-podman compose exec -T backend_api php artisan route:cache
-podman compose exec -T backend_api php artisan view:cache
-podman compose exec -T backend_api php artisan event:cache
+podman compose exec -T api php artisan config:cache
+podman compose exec -T api php artisan route:cache
+podman compose exec -T api php artisan view:cache
+podman compose exec -T api php artisan event:cache
 
 echo "🔄 Перезапуск очереди задач..."
-podman compose exec -T backend_scheduler php artisan queue:restart || true
+podman compose exec -T scheduler php artisan queue:restart || true
 
 echo "🧹 Очистка старых образов..."
 podman image prune -f
@@ -94,9 +94,9 @@ log_info "Деплой завершен!"
 
 echo ""
 echo "📝 Полезные команды:"
-echo "   Логи:      podman compose logs -f backend_api"
+echo "   Логи:      podman compose logs -f api"
 echo "   Статус:    podman compose ps"
-echo "   Миграции:  podman compose exec backend_api php artisan migrate:status"
+echo "   Миграции:  podman compose exec api php artisan migrate:status"
 echo ""
 
 if [ "$FIRST_RUN" = true ]; then

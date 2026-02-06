@@ -157,10 +157,10 @@ localTimeToUtc(timeString)   // "15:00" local → "10:00" UTC
 podman compose up -d --build
 
 # Инициализация (первый раз)
-podman compose exec backend_api composer install
-podman compose exec backend_api php artisan migrate --force
-podman compose exec backend_api php artisan db:seed-demo
-podman compose exec backend_api php artisan storage:link
+podman compose exec api composer install
+podman compose exec api php artisan migrate --force
+podman compose exec api php artisan db:seed-demo
+podman compose exec api php artisan storage:link
 ```
 
 **Доступ:**
@@ -233,7 +233,7 @@ podman compose exec backend_api php artisan storage:link
 
 ```bash
 # Backend тесты (ОБЯЗАТЕЛЬНО после изменений)
-podman compose exec backend_api php artisan test
+podman compose exec api php artisan test
 
 # Frontend dev server
 cd TaskMateClient && npm run dev
@@ -242,7 +242,7 @@ cd TaskMateClient && npm run dev
 ./scripts/rebuild-frontend.sh
 
 # Форматирование PHP
-podman compose exec backend_api vendor/bin/pint
+podman compose exec api vendor/bin/pint
 ```
 
 ## Podman (Fedora/RHEL)
@@ -265,7 +265,7 @@ podman compose up -d
 Если контейнеры уже запущены:
 ```bash
 podman unshare chown -R 1000:1000 TaskMateServer/
-docker restart taskmate_backend_api
+docker restart svc-api
 ```
 
 ## Troubleshooting
@@ -273,7 +273,7 @@ docker restart taskmate_backend_api
 | Проблема | Решение |
 |----------|---------|
 | Permission denied (storage) | `podman compose down && podman compose up -d --build` |
-| CORS 403 / Permission denied в rootless Podman | `podman unshare chown -R 1000:1000 TaskMateServer/` затем `docker restart taskmate_backend_api` |
+| CORS 403 / Permission denied в rootless Podman | `podman unshare chown -R 1000:1000 TaskMateServer/` затем `docker restart svc-api` |
 | Изменения не применяются в worker | `podman compose build --no-cache && podman compose up -d` |
 | Database connection refused | Проверьте `DB_HOST=postgres` в `.env` |
 | Изменения Tailwind/CSS не применяются | См. "Полная пересборка frontend" ниже |
@@ -298,10 +298,10 @@ cd TaskMateClient
 podman run --rm -v .:/app:Z -w /app node:22-alpine sh -c "npm ci && npm run build"
 
 # 3. Копирование в работающий контейнер
-docker cp ./dist/. taskmate_src_frontend:/usr/share/nginx/html/
+docker cp ./dist/. svc-frontend:/usr/share/nginx/html/
 
 # 4. Перезапуск nginx для применения изменений
-docker restart taskmate_src_frontend
+docker restart svc-frontend
 ```
 
 Альтернатива — закоммитить изменения в submodule перед сборкой:
@@ -319,12 +319,12 @@ podman compose up -d src_frontend
 
 ```bash
 # Для Docker:
-docker rmi taskmate_src_frontend:latest 2>/dev/null || true
+docker rmi svc-frontend:latest 2>/dev/null || true
 podman compose build --no-cache src_frontend
 podman compose up -d src_frontend
 
 # Для Podman:
-podman rmi localhost/taskmate_src_frontend:latest 2>/dev/null || true
+podman rmi localhost/svc-frontend:latest 2>/dev/null || true
 podman compose build --no-cache src_frontend
 podman compose up -d src_frontend
 ```
@@ -332,12 +332,12 @@ podman compose up -d src_frontend
 **Проверка применения изменений:**
 ```bash
 # Проверить, что CSS содержит новые значения
-docker exec taskmate_src_frontend cat /usr/share/nginx/html/assets/*.css | grep -o '#171717\|#262626' | head -5
+docker exec svc-frontend cat /usr/share/nginx/html/assets/*.css | grep -o '#171717\|#262626' | head -5
 ```
 
 Если изменения всё ещё не применяются:
 1. Очистите кеш браузера (Ctrl+Shift+R)
-2. Проверьте, что nginx перезагрузился: `docker restart taskmate_src_frontend`
+2. Проверьте, что nginx перезагрузился: `docker restart svc-frontend`
 
 ---
 
