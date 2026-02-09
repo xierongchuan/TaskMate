@@ -245,6 +245,67 @@ cd TaskMateClient && npm run dev
 podman compose exec api vendor/bin/pint
 ```
 
+## Android (Capacitor)
+
+Мобильное приложение собирается через Capacitor 8 внутри Docker-контейнера (без Android Studio на хосте).
+
+### Сборка APK
+
+```bash
+# Первая сборка образа (JDK 21 + Node 22 + Android SDK 36, ~3 ГБ)
+podman compose --profile android build android-builder
+
+# Сборка APK
+./scripts/build-android.sh
+# APK: TaskMateClient/android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+### Установка на устройство по Wi-Fi
+
+На телефоне: Настройки > Для разработчиков > Отладка по Wi-Fi > Включить.
+
+На экране "Отладка по Wi-Fi" нужны **три** значения с **двух** разных мест:
+
+**С модального окна** (кнопка "Сопряжение через код"):
+- IP:port → `ADB_PAIR_TARGET` (одноразовый порт для сопряжения)
+- 6-значный код → `ADB_PAIR_CODE`
+
+**С основного экрана** "Отладка по Wi-Fi" (видно без нажатия кнопок, строка "IP-адрес и порт"):
+- IP:port → `ADB_CONNECT` (постоянный порт для подключения, **отличается** от порта сопряжения)
+
+```bash
+# Первый раз: сопряжение + подключение + сборка + установка
+ADB_PAIR_TARGET=192.168.1.XX:XXXXX \
+ADB_PAIR_CODE=XXXXXX \
+ADB_CONNECT=192.168.1.XX:YYYYY \
+./scripts/build-android.sh --pair --deploy
+
+# Последующие разы: подключение + сборка + установка
+ADB_CONNECT=192.168.1.XX:YYYYY \
+./scripts/build-android.sh --deploy
+```
+
+### Настройка API URL
+
+API URL вшивается в APK при сборке через переменную `ANDROID_API_URL` в `.env`:
+
+```env
+# Через туннель (из любой сети):
+ANDROID_API_URL=http://173.212.212.236/api/v1
+
+# Через LAN (локальная сеть):
+ANDROID_API_URL=http://192.168.x.x:8099/api/v1
+
+# Production:
+ANDROID_API_URL=https://site.com/api/v1
+```
+
+### Требования
+
+- Android 11+ (API 30+)
+- `profiles: ["android"]` — контейнер не запускается при обычном `podman compose up`
+- CORS: `https://localhost` должен быть в `CORS_ALLOWED_ORIGINS` (TaskMateServer/.env)
+
 ## Podman (Fedora/RHEL)
 
 Для систем с SELinux:

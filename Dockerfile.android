@@ -1,0 +1,47 @@
+# ============================================================
+# Android builder for TaskMate APK
+# Capacitor 8: JDK 21, Node 22, compileSdk 36, Gradle 8.14.3
+# ============================================================
+FROM docker.io/library/eclipse-temurin:21-jdk-noble
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# ---- System dependencies ----
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    unzip \
+    git \
+    android-tools-adb \
+    && rm -rf /var/lib/apt/lists/*
+
+# ---- Node.js 22 (required by Capacitor 8) ----
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# ---- Android SDK command-line tools ----
+ENV ANDROID_HOME=/opt/android-sdk
+ENV ANDROID_SDK_ROOT=${ANDROID_HOME}
+ENV PATH="${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${PATH}"
+
+RUN mkdir -p ${ANDROID_HOME}/cmdline-tools \
+    && curl -fsSL -o /tmp/cmdline-tools.zip \
+       https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip \
+    && unzip -q /tmp/cmdline-tools.zip -d /tmp/cmdline-tools-unzip \
+    && mv /tmp/cmdline-tools-unzip/cmdline-tools ${ANDROID_HOME}/cmdline-tools/latest \
+    && rm -rf /tmp/cmdline-tools.zip /tmp/cmdline-tools-unzip
+
+# ---- Accept SDK licenses + install platform/build-tools ----
+RUN yes | sdkmanager --licenses > /dev/null 2>&1 \
+    && sdkmanager \
+       "platform-tools" \
+       "platforms;android-36" \
+       "build-tools;36.0.0" \
+    && sdkmanager --list_installed
+
+# ---- Gradle cache directory (mounted as volume) ----
+ENV GRADLE_USER_HOME=/gradle-cache
+
+WORKDIR /app
+
+CMD ["/bin/bash"]

@@ -48,5 +48,26 @@ services:
             - web
         profiles: [ "dev" ]
 
+    android-builder:
+        build:
+            context: .
+            dockerfile: Dockerfile.android
+        container_name: svc-android-builder
+        profiles: [ "android" ]
+        network_mode: host
+        environment:
+            VITE_API_BASE_URL: ${ANDROID_API_URL:-http://173.212.212.236/api/v1}
+            GRADLE_USER_HOME: /gradle-cache
+        volumes:
+            - ./TaskMateClient:/app:z
+            - gradle_cache:/gradle-cache
+            - adb_keys:/root/.android
+        working_dir: /app
+        stdin_open: true
+        tty: true
+        command: [ "sleep", "infinity" ]
+
 volumes:
     pgadmin_data:
+    gradle_cache:
+    adb_keys:

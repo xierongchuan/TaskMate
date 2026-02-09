@@ -44,7 +44,10 @@ podman compose exec api php artisan storage:link
 ## Обязательные правила
 
 1. **Язык** — русский для UI, комментариев, документации. Код на английском.
-2. **Docker** — все команды через контейнеры. Не ставить зависимости на хосте.
+2. **Docker** — ВСЕ команды через контейнеры. npm/node/composer/php на хосте НЕ установлены.
+   - Backend: `podman compose exec api <команда>`
+   - Frontend: `podman run --rm -v ./TaskMateClient:/app:z -w /app docker.io/library/node:22-alpine <команда>`
+   - Android build: `podman compose --profile android exec android-builder <команда>`
 3. **Тесты** — ВСЕГДА `podman compose exec api php artisan test` после backend-изменений.
 4. **Синхронизация** — при изменении API (backend) проверять frontend, и наоборот.
 5. **PostgreSQL only** — не использовать MySQL-совместимый синтаксис.
@@ -89,9 +92,10 @@ podman compose exec api php artisan test
 podman compose exec api composer test:coverage
 podman compose exec api vendor/bin/pint
 
-# Frontend
-cd TaskMateClient && npm run build
-cd TaskMateClient && npm run lint
+# Frontend (через одноразовый контейнер — npm на хосте НЕ установлен)
+podman run --rm -v ./TaskMateClient:/app:z -w /app docker.io/library/node:22-alpine npm run build
+podman run --rm -v ./TaskMateClient:/app:z -w /app docker.io/library/node:22-alpine npm run lint
+podman run --rm -v ./TaskMateClient:/app:z -w /app docker.io/library/node:22-alpine npm install <package>
 
 # Deploy
 ./scripts/deploy_prod.sh --pull --init   # первый раз
