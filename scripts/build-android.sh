@@ -58,6 +58,7 @@ echo "==> Запуск android-builder..."
 $COMPOSE --profile android up -d android-builder
 
 EXEC="$COMPOSE --profile android exec android-builder"
+ADB_EXEC="$COMPOSE --profile android exec -T android-builder"
 
 # ---- ADB pairing (одноразово для каждого устройства) ----
 if $DO_PAIR; then
@@ -66,21 +67,28 @@ if $DO_PAIR; then
         echo "  Пример: ADB_PAIR_TARGET=192.168.1.100:37015 ADB_PAIR_CODE=123456 ADB_CONNECT=192.168.1.100:45678 $0 --pair --deploy"
         exit 1
     fi
+    echo "==> Запуск ADB-сервера..."
+    $ADB_EXEC adb kill-server 2>/dev/null || true
+    $ADB_EXEC adb start-server
     echo "==> Сопряжение с устройством $ADB_PAIR_TARGET..."
-    $EXEC adb pair "$ADB_PAIR_TARGET" "$ADB_PAIR_CODE"
+    $ADB_EXEC adb pair "$ADB_PAIR_TARGET" "$ADB_PAIR_CODE"
 fi
 
 # ---- ADB connect (подключение к устройству) ----
 if $DO_DEPLOY; then
+    if ! $DO_PAIR; then
+        $ADB_EXEC adb kill-server 2>/dev/null || true
+        $ADB_EXEC adb start-server
+    fi
     if [ -n "${ADB_CONNECT:-}" ]; then
         echo "==> Подключение к устройству $ADB_CONNECT..."
-        $EXEC adb connect "$ADB_CONNECT"
+        $ADB_EXEC adb connect "$ADB_CONNECT"
     fi
     # Ждём пока устройство появится (mDNS discovery)
     echo "==> Ожидание устройства..."
     sleep 2
-    $EXEC adb devices
-    DEVICE_COUNT=$($EXEC bash -c 'adb devices | grep -c "device$"' || true)
+    $ADB_EXEC adb devices
+    DEVICE_COUNT=$($ADB_EXEC bash -c 'adb devices | grep -c "device$"' || true)
     if [ "${DEVICE_COUNT:-0}" -lt 1 ]; then
         echo "ОШИБКА: Нет подключённых устройств."
         echo "  Укажите ADB_CONNECT=<IP:port> из 'IP-адрес и порт' на экране Отладки по Wi-Fi"
@@ -111,10 +119,16 @@ echo "==> APK собран: TaskMateClient/$APK_PATH"
 
 # ---- Деплой на устройство ----
 if $DO_DEPLOY; then
+    # Определяем целевое устройство (ADB_CONNECT или первое найденное)
+    if [ -n "${ADB_CONNECT:-}" ]; then
+        ADB_DEVICE="-s $ADB_CONNECT"
+    else
+        ADB_DEVICE=""
+    fi
     echo "==> Установка APK на устройство..."
-    $EXEC adb install -r "$APK_PATH"
+    $ADB_EXEC adb $ADB_DEVICE install -r "$APK_PATH"
     echo "==> Запуск приложения..."
-    $EXEC adb shell am start -n ru.andcrm.vfp/.MainActivity
+    $ADB_EXEC adb $ADB_DEVICE shell am start -n ru.andcrm.vfp/.MainActivity
     echo "==> Готово! Приложение установлено и запущено."
 else
     echo "==> Готово! APK: TaskMateClient/$APK_PATH"

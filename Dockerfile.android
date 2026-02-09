@@ -11,7 +11,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     unzip \
     git \
-    android-tools-adb \
     && rm -rf /var/lib/apt/lists/*
 
 # ---- Node.js 22 (required by Capacitor 8) ----
