@@ -3,9 +3,11 @@
 # Сборка TaskMate Android APK и деплой через ADB Wi-Fi
 #
 # Использование:
-#   ./scripts/build-android.sh                  # Только сборка
-#   ./scripts/build-android.sh --deploy         # Сборка + установка
-#   ./scripts/build-android.sh --pair --deploy  # Pairing + сборка + установка
+#   ./scripts/build-android.sh                    # Debug APK (error overlay включён)
+#   ./scripts/build-android.sh --release          # Release APK (production, без overlay)
+#   ./scripts/build-android.sh --deploy           # Debug + установка
+#   ./scripts/build-android.sh --release --deploy # Release + установка
+#   ./scripts/build-android.sh --pair --deploy    # Pairing + debug + установка
 #
 # Переменные окружения:
 #   ANDROID_API_URL   - API URL, вшиваемый в APK (из .env или вручную)
@@ -27,12 +29,27 @@ fi
 
 DO_DEPLOY=false
 DO_PAIR=false
+DO_RELEASE=false
 for arg in "$@"; do
     case $arg in
-        --deploy) DO_DEPLOY=true ;;
-        --pair)   DO_PAIR=true ;;
+        --deploy)  DO_DEPLOY=true ;;
+        --pair)    DO_PAIR=true ;;
+        --release) DO_RELEASE=true ;;
     esac
 done
+
+# Режим сборки: debug (development) или release (production)
+if $DO_RELEASE; then
+    VITE_MODE="production"
+    GRADLE_TASK="assembleRelease"
+    APK_PATH="android/app/build/outputs/apk/release/app-release-unsigned.apk"
+    BUILD_LABEL="release"
+else
+    VITE_MODE="development"
+    GRADLE_TASK="assembleDebug"
+    APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
+    BUILD_LABEL="debug"
+fi
 
 cd "$PROJECT_ROOT"
 
@@ -76,19 +93,20 @@ fi
 echo "==> Установка npm-зависимостей..."
 $EXEC npm ci
 
-# ---- Vite build с Android API URL ----
-echo "==> Сборка web-ассетов (API: ${ANDROID_API_URL:-из .env})..."
-$EXEC bash -c 'npm run build'
+# ---- Vite build ----
+# development → error overlay в index.html (для отладки на устройстве без DevTools)
+# production  → без overlay, минифицированный код
+echo "==> Сборка web-ассетов (mode: $VITE_MODE, API: ${ANDROID_API_URL:-из .env})..."
+$EXEC npx vite build --mode "$VITE_MODE"
 
 # ---- Capacitor sync ----
 echo "==> Синхронизация Capacitor..."
 $EXEC npx cap sync android
 
-# ---- Gradle assembleDebug ----
-echo "==> Сборка debug APK..."
-$EXEC bash -c 'cd android && ./gradlew assembleDebug'
+# ---- Gradle build ----
+echo "==> Сборка $BUILD_LABEL APK..."
+$EXEC bash -c "cd android && ./gradlew $GRADLE_TASK"
 
-APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
 echo "==> APK собран: TaskMateClient/$APK_PATH"
 
 # ---- Деплой на устройство ----

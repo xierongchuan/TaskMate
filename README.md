@@ -238,8 +238,11 @@ podman compose exec api php artisan test
 # Frontend dev server
 cd TaskMateClient && npm run dev
 
-# Пересборка frontend (обходит кеш Docker)
+# Пересборка frontend — production (обходит кеш Docker)
 ./scripts/rebuild-frontend.sh
+
+# Пересборка frontend — debug (error overlay включён)
+./scripts/rebuild-frontend.sh --debug
 
 # Форматирование PHP
 podman compose exec api vendor/bin/pint
@@ -255,10 +258,14 @@ podman compose exec api vendor/bin/pint
 # Первая сборка образа (JDK 21 + Node 22 + Android SDK 36, ~3 ГБ)
 podman compose --profile android build android-builder
 
-# Сборка APK
+# Debug APK (Vite mode=development, error overlay включён)
 ./scripts/build-android.sh
-# APK: TaskMateClient/android/app/build/outputs/apk/debug/app-debug.apk
+
+# Release APK (Vite mode=production, без error overlay)
+./scripts/build-android.sh --release
 ```
+
+> **Debug vs Release:** Debug-сборка включает error overlay в `index.html` — ошибки JS отображаются прямо на экране устройства (полезно без DevTools). Release-сборка — production-код без overlay.
 
 ### Установка на устройство по Wi-Fi
 
@@ -283,6 +290,10 @@ ADB_CONNECT=192.168.1.XX:YYYYY \
 # Последующие разы: подключение + сборка + установка
 ADB_CONNECT=192.168.1.XX:YYYYY \
 ./scripts/build-android.sh --deploy
+
+# Release-сборка + установка
+ADB_CONNECT=192.168.1.XX:YYYYY \
+./scripts/build-android.sh --release --deploy
 ```
 
 ### Настройка API URL
