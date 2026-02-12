@@ -112,6 +112,12 @@ services:
             VITE_API_BASE_URL: ${VITE_API_BASE_URL}
         networks:
             - web
+        healthcheck:
+            test: [ "CMD-SHELL", "wget -qO /dev/null http://127.0.0.1/health || exit 1" ]
+            interval: 10s
+            timeout: 5s
+            retries: 3
+            start_period: 10s
 
     api:
         build:
@@ -136,9 +142,18 @@ services:
         networks:
             - web
         depends_on:
-            - postgres
-            - valkey
-            - rabbitmq
+            postgres:
+                condition: service_healthy
+            valkey:
+                condition: service_healthy
+            rabbitmq:
+                condition: service_healthy
+        healthcheck:
+            test: [ "CMD-SHELL", "php -r \"@file_get_contents('http://127.0.0.1:8000/api/v1/up') or exit(1);\"" ]
+            interval: 10s
+            timeout: 5s
+            retries: 6
+            start_period: 15s
 
     scheduler:
         build:
@@ -207,8 +222,10 @@ services:
         networks:
             - web
         depends_on:
-            - frontend
-            - api
+            frontend:
+                condition: service_healthy
+            api:
+                condition: service_healthy
 
     certbot:
         image: docker.io/certbot/certbot:v4.0.0
@@ -237,8 +254,10 @@ services:
         networks:
             - web
         depends_on:
-            - api
-            - valkey
+            api:
+                condition: service_healthy
+            valkey:
+                condition: service_healthy
 
     telegram-bot-worker:
         build:
