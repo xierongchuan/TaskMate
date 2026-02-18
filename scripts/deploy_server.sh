@@ -45,7 +45,7 @@ fi
 log_step "Обновление кода..."
 git fetch origin
 git checkout vfp
-git pull origin vfp
+git reset --hard origin/vfp
 git submodule update --init --recursive
 log_info "Код обновлён"
 
