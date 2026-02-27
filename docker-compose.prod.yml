@@ -1,0 +1,18 @@
+services:
+    nginx:
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - ./nginx/nginx.prod.conf:/etc/nginx/templates/default.conf.template:ro
+            - ./certbot/www:/var/www/certbot
+            - ./certbot/conf:/etc/letsencrypt:ro
+        environment:
+            - NGINX_HOST=${PROD_DOMAIN}
+            - PROD_DOMAIN=${PROD_DOMAIN}
+            - NGINX_EMAIL=${PGADMIN_EMAIL}
+        profiles: []
+
+    certbot:
+        profiles: [ "certbot" ]
+        # в проде мы будем запускать certbot вручную/CI для выдачи certs

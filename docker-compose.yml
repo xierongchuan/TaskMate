@@ -1,0 +1,297 @@
+x-api-env: &api-env
+    APP_DEBUG: ${DEBUG_MODE}
+    APP_ENV: ${APP_ENVIRONMENT}
+    APP_KEY: ${APP_KEY}
+    APP_URL: ${APP_URL}
+    APP_TIMEZONE: ${APP_TIMEZONE}
+    DB_CONNECTION: ${DB_CONNECTION}
+    DB_HOST: ${DB_HOST}
+    DB_PORT: ${DB_PORT}
+    DB_DATABASE: ${DB_DATABASE}
+    DB_USERNAME: ${DB_USERNAME}
+    DB_PASSWORD: ${DB_PASSWORD}
+    QUEUE_CONNECTION: rabbitmq
+    RABBITMQ_HOST: rabbitmq
+    RABBITMQ_PORT: 5672
+    RABBITMQ_USER: ${RABBITMQ_USER:-taskmate}
+    RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-taskmate_secret}
+    RABBITMQ_VHOST: ${RABBITMQ_VHOST:-/}
+
+x-worker-base: &worker-base
+    build:
+        context: ./TaskMateServer/
+        dockerfile: Dockerfile
+        target: runner
+    restart: unless-stopped
+    env_file: [ ./.env ]
+    extra_hosts:
+        - "host.docker.internal:host-gateway"
+    environment:
+        <<: *api-env
+    volumes:
+        - ./TaskMateServer/.env:/app/.env:z
+        - ./TaskMateServer/storage/app/private:/app/storage/app/private:z
+    depends_on:
+        postgres:
+            condition: service_healthy
+        rabbitmq:
+            condition: service_healthy
+    networks:
+        - web
+
+x-worker-command: &worker-command
+    /bin/bash -c "rm -f /app/bootstrap/cache/services.php /app/bootstrap/cache/packages.php && php /app/artisan package:discover && exec php /app/artisan queue:work rabbitmq --queue=${QUEUE_NAME} --sleep=5 --tries=3 --max-time=3600"
+
+services:
+    valkey:
+        image: docker.io/valkey/valkey:9.0.1
+        container_name: svc-valkey
+        restart: on-failure
+        volumes:
+            - valkey_data:/data
+            - ./valkey.conf:/etc/valkey/valkey.conf:ro,Z
+        command: [ "valkey-server", "/etc/valkey/valkey.conf" ]
+        networks:
+            - web
+        healthcheck:
+            test: [ "CMD", "valkey-cli", "ping" ]
+            interval: 10s
+            timeout: 5s
+            retries: 3
+
+    rabbitmq:
+        image: docker.io/library/rabbitmq:4-management-alpine
+        container_name: svc-rabbitmq
+        restart: on-failure
+        environment:
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-taskmate}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-taskmate_secret}
+            RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
+        volumes:
+            - rabbitmq_data:/var/lib/rabbitmq
+        networks:
+            - web
+        healthcheck:
+            test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    postgres:
+        image: docker.io/library/postgres:18.1
+        container_name: svc-postgres
+        restart: on-failure
+        env_file: [ ./.env ]
+        environment:
+            POSTGRES_USER: ${DB_USERNAME}
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+            POSTGRES_DB: ${DB_DATABASE}
+        volumes:
+            - postgres_data:/var/lib/postgresql
+            - ./scripts/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh:ro,Z
+        networks:
+            - web
+        healthcheck:
+            test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d postgres" ]
+            interval: 10s
+            timeout: 5s
+            retries: 6
+
+    frontend:
+        build:
+            context: ./TaskMateClient/
+            dockerfile: Dockerfile
+            args:
+                VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+                VITE_APP_NAME: ${VITE_APP_NAME:-TaskMate}
+        container_name: svc-frontend
+        restart: on-failure
+        env_file: [ ./.env ]
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        environment:
+            VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+        networks:
+            - web
+        healthcheck:
+            test: [ "CMD-SHELL", "wget -qO /dev/null http://127.0.0.1/health || exit 1" ]
+            interval: 10s
+            timeout: 5s
+            retries: 3
+            start_period: 10s
+
+    api:
+        build:
+            context: ./TaskMateServer/
+            dockerfile: Dockerfile
+            target: runner
+        container_name: svc-api
+        restart: on-failure
+        env_file: [ ./.env ]
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        environment:
+            <<: *api-env
+            VCRM_API_URL: ${VCRM_API_URL:-}
+            VCRM_API_TOKEN: ${VCRM_API_TOKEN:-}
+            RATE_LIMIT_TRUSTED_IPS: ${RATE_LIMIT_TRUSTED_IPS:-}
+            SERVER_NAME: ":8000"
+        volumes:
+            - ./TaskMateServer/.env:/app/.env:z
+            - ./scripts/wait-for-it.sh:/wait-for-it.sh:ro,Z
+            - ./TaskMateServer/storage/app/private:/app/storage/app/private:z
+        networks:
+            - web
+        depends_on:
+            postgres:
+                condition: service_healthy
+            valkey:
+                condition: service_healthy
+            rabbitmq:
+                condition: service_healthy
+        healthcheck:
+            test: [ "CMD-SHELL", "php -r \"@file_get_contents('http://127.0.0.1:8000/api/v1/up') or exit(1);\"" ]
+            interval: 10s
+            timeout: 5s
+            retries: 6
+            start_period: 15s
+
+    scheduler:
+        build:
+            context: ./TaskMateServer/
+            dockerfile: Dockerfile
+            target: runner
+        container_name: svc-scheduler
+        restart: unless-stopped
+        env_file: [ ./.env ]
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        environment:
+            <<: *api-env
+        volumes:
+            - ./TaskMateServer/.env:/app/.env:z
+            - ./TaskMateServer/supervisor.conf:/etc/supervisor/conf.d/supervisor.conf:ro,Z
+            - ./TaskMateServer/sync-scheduler.sh:/app/sync-scheduler.sh:ro,Z
+            - ./TaskMateServer/storage/app/private:/app/storage/app/private:z
+        depends_on:
+            postgres:
+                condition: service_healthy
+            rabbitmq:
+                condition: service_healthy
+        networks:
+            - web
+        command: [ "/bin/bash", "-c", "chown -R www-data:www-data /app/storage && chmod -R g+rwX /app/storage && find /app/storage -type d -exec chmod g+s {} + && exec supervisord -n -c /etc/supervisor/conf.d/supervisor.conf" ]
+        healthcheck:
+            disable: true
+
+    worker-cleanup:
+        <<: *worker-base
+        container_name: svc-worker-cleanup
+        command: [ "/bin/bash", "-c", "rm -f /app/bootstrap/cache/services.php /app/bootstrap/cache/packages.php && php /app/artisan package:discover && exec php /app/artisan queue:work rabbitmq --queue=file_cleanup --sleep=5 --tries=3 --max-time=3600" ]
+
+    worker-proof:
+        <<: *worker-base
+        container_name: svc-worker-proof
+        command: [ "/bin/bash", "-c", "rm -f /app/bootstrap/cache/services.php /app/bootstrap/cache/packages.php && php /app/artisan package:discover && exec php /app/artisan queue:work rabbitmq --queue=proof_upload --sleep=5 --tries=3 --max-time=3600" ]
+
+    worker-shared:
+        <<: *worker-base
+        container_name: svc-worker-shared
+        command: [ "/bin/bash", "-c", "rm -f /app/bootstrap/cache/services.php /app/bootstrap/cache/packages.php && php /app/artisan package:discover && exec php /app/artisan queue:work rabbitmq --queue=shared_proof_upload --sleep=5 --tries=3 --max-time=3600" ]
+
+    worker-generator:
+        <<: *worker-base
+        container_name: svc-worker-generator
+        volumes:
+            - ./TaskMateServer/.env:/app/.env:z
+        command: [ "/bin/bash", "-c", "rm -f /app/bootstrap/cache/services.php /app/bootstrap/cache/packages.php && php /app/artisan package:discover && exec php /app/artisan queue:work rabbitmq --queue=task_generators --sleep=5 --tries=3 --max-time=3600" ]
+
+    worker-shifts:
+        <<: *worker-base
+        container_name: svc-worker-shifts
+        volumes:
+            - ./TaskMateServer/.env:/app/.env:z
+        command: [ "/bin/bash", "-c", "rm -f /app/bootstrap/cache/services.php /app/bootstrap/cache/packages.php && php /app/artisan package:discover && exec php /app/artisan queue:work rabbitmq --queue=shift_auto_close --sleep=5 --tries=3 --max-time=3600" ]
+
+    nginx:
+        image: docker.io/library/nginx:1.27-alpine
+        container_name: svc-nginx
+        restart: on-failure
+        volumes:
+            - ./certbot/www:/var/www/certbot:z
+            - ./certbot/conf:/etc/letsencrypt:z
+        networks:
+            - web
+        depends_on:
+            frontend:
+                condition: service_healthy
+            api:
+                condition: service_healthy
+
+    certbot:
+        image: docker.io/certbot/certbot:v4.0.0
+        container_name: svc-certbot
+        volumes:
+            - ./certbot/conf:/etc/letsencrypt:z
+            - ./certbot/www:/var/www/certbot:z
+        networks:
+            - web
+        profiles: [ "certbot" ]
+
+    telegram-bot:
+        build:
+            context: ./TaskMateTelegramBot/
+            dockerfile: Dockerfile
+        container_name: svc-telegram-bot
+        restart: on-failure
+        env_file: [ ./.env ]
+        environment:
+            TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+            TASKMATE_API_URL: http://api:8000/api/v1
+            VALKEY_HOST: valkey
+            VALKEY_PORT: 6379
+            VALKEY_DB: 1
+            LOG_LEVEL: ${BOT_LOG_LEVEL:-INFO}
+        networks:
+            - web
+        depends_on:
+            api:
+                condition: service_healthy
+            valkey:
+                condition: service_healthy
+
+    telegram-bot-worker:
+        build:
+            context: ./TaskMateTelegramBot/
+            dockerfile: Dockerfile
+        container_name: svc-telegram-bot-worker
+        restart: on-failure
+        env_file: [ ./.env ]
+        command: ["python", "-m", "src.worker"]
+        environment:
+            TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+            TASKMATE_API_URL: http://api:8000/api/v1
+            VALKEY_HOST: valkey
+            VALKEY_PORT: 6379
+            VALKEY_DB: 1
+            RABBITMQ_HOST: rabbitmq
+            RABBITMQ_PORT: 5672
+            RABBITMQ_USER: ${RABBITMQ_USER:-taskmate}
+            RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-taskmate_secret}
+            RABBITMQ_VHOST: ${RABBITMQ_VHOST:-/}
+            LOG_LEVEL: ${BOT_LOG_LEVEL:-INFO}
+        networks:
+            - web
+        depends_on:
+            - valkey
+            - rabbitmq
+
+
+volumes:
+    valkey_data:
+    postgres_data:
+    rabbitmq_data:
+
+networks:
+    web:
+        driver: bridge

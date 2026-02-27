@@ -1,0 +1,251 @@
+x-api-env: &api-env
+    APP_DEBUG: "false"
+    APP_ENV: production
+    APP_KEY: ${APP_KEY}
+    APP_URL: ${APP_URL}
+    APP_TIMEZONE: ${APP_TIMEZONE}
+    DB_CONNECTION: pgsql
+    DB_HOST: tm_postgres
+    DB_PORT: "5432"
+    DB_DATABASE: ${DB_DATABASE}
+    DB_USERNAME: ${DB_USERNAME}
+    DB_PASSWORD: ${DB_PASSWORD}
+    QUEUE_CONNECTION: rabbitmq
+    RABBITMQ_HOST: tm_rabbitmq
+    RABBITMQ_PORT: "5672"
+    RABBITMQ_USER: ${RABBITMQ_USER}
+    RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    RABBITMQ_VHOST: ${RABBITMQ_VHOST}
+
+x-worker-base: &worker-base
+    build:
+        context: ./TaskMateServer/
+        dockerfile: Dockerfile
+        target: runner
+    restart: unless-stopped
+    environment:
+        <<: *api-env
+    volumes:
+        - ./TaskMateServer/.env:/app/.env:z
+        - taskmate_storage:/app/storage/app/private
+    depends_on:
+        tm_postgres:
+            condition: service_healthy
+        tm_rabbitmq:
+            condition: service_healthy
+    networks:
+        - tm_internal
+
+services:
+    tm_postgres:
+        image: postgres:18.1
+        container_name: tm_postgres
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: ${DB_USERNAME}
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+            POSTGRES_DB: ${DB_DATABASE}
+        volumes:
+            - tm_postgres_data:/var/lib/postgresql
+        networks:
+            - tm_internal
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+            interval: 10s
+            timeout: 5s
+            retries: 6
+
+    tm_valkey:
+        image: valkey/valkey:9.0.1
+        container_name: tm_valkey
+        restart: unless-stopped
+        volumes:
+            - tm_valkey_data:/data
+            - ./valkey.conf:/etc/valkey/valkey.conf:ro
+        command: ["valkey-server", "/etc/valkey/valkey.conf"]
+        networks:
+            - tm_internal
+        healthcheck:
+            test: ["CMD", "valkey-cli", "ping"]
+            interval: 10s
+            timeout: 5s
+            retries: 3
+
+    tm_rabbitmq:
+        image: rabbitmq:4-management-alpine
+        container_name: tm_rabbitmq
+        restart: unless-stopped
+        environment:
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+            RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
+        volumes:
+            - tm_rabbitmq_data:/var/lib/rabbitmq
+        networks:
+            - tm_internal
+        healthcheck:
+            test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    tm_frontend:
+        build:
+            context: ./TaskMateClient/
+            dockerfile: Dockerfile
+            args:
+                VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+                VITE_APP_NAME: ${VITE_APP_NAME:-TaskMate}
+        container_name: tm_frontend
+        restart: unless-stopped
+        networks:
+            - tm_internal
+            - infrastructure_frontend
+        healthcheck:
+            test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1/health || exit 1"]
+            interval: 10s
+            timeout: 5s
+            retries: 3
+            start_period: 10s
+
+    tm_api:
+        build:
+            context: ./TaskMateServer/
+            dockerfile: Dockerfile
+            target: runner
+        container_name: tm_api
+        restart: unless-stopped
+        environment:
+            <<: *api-env
+            SERVER_NAME: ":8000"
+            CORS_ALLOWED_ORIGINS: "https://server.com"
+            RATE_LIMIT_TRUSTED_IPS: ${RATE_LIMIT_TRUSTED_IPS:-127.0.0.1,172.16.0.0/12}
+        volumes:
+            - ./TaskMateServer/.env:/app/.env:z
+            - taskmate_storage:/app/storage/app/private
+        networks:
+            - tm_internal
+            - infrastructure_frontend
+        depends_on:
+            tm_postgres:
+                condition: service_healthy
+            tm_valkey:
+                condition: service_healthy
+            tm_rabbitmq:
+                condition: service_healthy
+        healthcheck:
+            test: ["CMD-SHELL", "php -r \"@file_get_contents('http://127.0.0.1:8000/api/v1/up') or exit(1);\""]
+            interval: 10s
+            timeout: 5s
+            retries: 6
+            start_period: 15s
+
+    tm_scheduler:
+        build:
+            context: ./TaskMateServer/
+            dockerfile: Dockerfile
+            target: runner
+        container_name: tm_scheduler
+        restart: unless-stopped
+        environment:
+            <<: *api-env
+        volumes:
+            - ./TaskMateServer/.env:/app/.env:z
+            - ./TaskMateServer/supervisor.conf:/etc/supervisor/conf.d/supervisor.conf:ro
+            - ./TaskMateServer/sync-scheduler.sh:/app/sync-scheduler.sh:ro
+            - taskmate_storage:/app/storage/app/private
+        depends_on:
+            tm_postgres:
+                condition: service_healthy
+            tm_rabbitmq:
+                condition: service_healthy
+        networks:
+            - tm_internal
+        command: ["/bin/bash", "-c", "chown -R www-data:www-data /app/storage && chmod -R g+rwX /app/storage && find /app/storage -type d -exec chmod g+s {} + && exec supervisord -n -c /etc/supervisor/conf.d/supervisor.conf"]
+        healthcheck:
+            disable: true
+
+    tm_worker_cleanup:
+        <<: *worker-base
+        container_name: tm_worker_cleanup
+        command: ["/bin/bash", "-c", "rm -f /app/bootstrap/cache/services.php /app/bootstrap/cache/packages.php && php /app/artisan package:discover && exec php /app/artisan queue:work rabbitmq --queue=file_cleanup --sleep=5 --tries=3 --max-time=3600"]
+
+    tm_worker_proof:
+        <<: *worker-base
+        container_name: tm_worker_proof
+        command: ["/bin/bash", "-c", "rm -f /app/bootstrap/cache/services.php /app/bootstrap/cache/packages.php && php /app/artisan package:discover && exec php /app/artisan queue:work rabbitmq --queue=proof_upload --sleep=5 --tries=3 --max-time=3600"]
+
+    tm_worker_shared:
+        <<: *worker-base
+        container_name: tm_worker_shared
+        command: ["/bin/bash", "-c", "rm -f /app/bootstrap/cache/services.php /app/bootstrap/cache/packages.php && php /app/artisan package:discover && exec php /app/artisan queue:work rabbitmq --queue=shared_proof_upload --sleep=5 --tries=3 --max-time=3600"]
+
+    tm_worker_generator:
+        <<: *worker-base
+        container_name: tm_worker_generator
+        command: ["/bin/bash", "-c", "rm -f /app/bootstrap/cache/services.php /app/bootstrap/cache/packages.php && php /app/artisan package:discover && exec php /app/artisan queue:work rabbitmq --queue=task_generators --sleep=5 --tries=3 --max-time=3600"]
+
+    tm_worker_shifts:
+        <<: *worker-base
+        container_name: tm_worker_shifts
+        command: ["/bin/bash", "-c", "rm -f /app/bootstrap/cache/services.php /app/bootstrap/cache/packages.php && php /app/artisan package:discover && exec php /app/artisan queue:work rabbitmq --queue=shift_auto_close --sleep=5 --tries=3 --max-time=3600"]
+
+    tm_telegram_bot:
+        build:
+            context: ./TaskMateTelegramBot/
+            dockerfile: Dockerfile
+        container_name: tm_telegram_bot
+        restart: unless-stopped
+        environment:
+            TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+            TASKMATE_API_URL: http://tm_api:8000/api/v1
+            VALKEY_HOST: tm_valkey
+            VALKEY_PORT: 6379
+            VALKEY_DB: 1
+            LOG_LEVEL: ${BOT_LOG_LEVEL:-INFO}
+        networks:
+            - tm_internal
+        depends_on:
+            tm_api:
+                condition: service_healthy
+            tm_valkey:
+                condition: service_healthy
+        profiles: ["telegram"]
+
+    tm_telegram_bot_worker:
+        build:
+            context: ./TaskMateTelegramBot/
+            dockerfile: Dockerfile
+        container_name: tm_telegram_bot_worker
+        restart: unless-stopped
+        command: ["python", "-m", "src.worker"]
+        environment:
+            TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+            TASKMATE_API_URL: http://tm_api:8000/api/v1
+            VALKEY_HOST: tm_valkey
+            VALKEY_PORT: 6379
+            VALKEY_DB: 1
+            RABBITMQ_HOST: tm_rabbitmq
+            RABBITMQ_PORT: 5672
+            RABBITMQ_USER: ${RABBITMQ_USER}
+            RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+            RABBITMQ_VHOST: ${RABBITMQ_VHOST}
+            LOG_LEVEL: ${BOT_LOG_LEVEL:-INFO}
+        networks:
+            - tm_internal
+        depends_on:
+            - tm_valkey
+            - tm_rabbitmq
+        profiles: ["telegram"]
+
+volumes:
+    tm_postgres_data:
+    tm_valkey_data:
+    tm_rabbitmq_data:
+    taskmate_storage:
+
+networks:
+    tm_internal:
+        driver: bridge
+    infrastructure_frontend:
+        external: true

@@ -1,0 +1,73 @@
+services:
+    api:
+        volumes:
+            - ./TaskMateServer/:/app:z
+        ports:
+            - "8007:8000"
+
+    scheduler:
+        volumes:
+            - ./TaskMateServer/:/app:z
+
+    postgres:
+        ports:
+            - "5432:5432"
+
+    valkey:
+        ports:
+            - "6379:6379"
+
+    rabbitmq:
+        ports:
+            - "15672:15672"
+
+    frontend: {}
+
+    nginx:
+        ports:
+            - "8099:80"
+        volumes:
+            - ./nginx/nginx.local.conf:/etc/nginx/conf.d/default.conf:ro,Z
+            - ./nginx/empty.sh:/docker-entrypoint.d/20-envsubst-on-templates.sh:ro,Z
+
+    pgadmin:
+        image: docker.io/dpage/pgadmin4:latest
+        container_name: svc-pgadmin
+        restart: on-failure
+        env_file: [ ./.env ]
+        environment:
+            PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+            PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+        ports:
+            - "8081:80"
+        volumes:
+            - pgadmin_data:/var/lib/pgadmin
+        depends_on:
+            - postgres
+        networks:
+            - web
+        profiles: [ "dev" ]
+
+    android-builder:
+        build:
+            context: .
+            dockerfile: Dockerfile.android
+        container_name: svc-android-builder
+        profiles: [ "android" ]
+        network_mode: host
+        environment:
+            VITE_API_BASE_URL: ${ANDROID_API_URL:-http://173.212.212.236/api/v1}
+            GRADLE_USER_HOME: /gradle-cache
+        volumes:
+            - ./TaskMateClient:/app:z
+            - gradle_cache:/gradle-cache
+            - adb_keys:/root/.android
+        working_dir: /app
+        stdin_open: true
+        tty: true
+        command: [ "sleep", "infinity" ]
+
+volumes:
+    pgadmin_data:
+    gradle_cache:
+    adb_keys:
