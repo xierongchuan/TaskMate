@@ -35,8 +35,7 @@ Monorepo with git submodules:
 
 2. **XSS Prevention (Cross-Site Scripting)**
    - Never output unvalidated user data directly to HTML
-   - Use automatic escaping in templating engines (Blade, React)
-   - For API use `json_encode()` with `JSON_HEX_TAG` flag
+   - For API responses, Laravel's `response()->json()` automatically escapes strings
    - Validate and sanitize all input data
 
 3. **SQL Injection Prevention**
@@ -45,9 +44,9 @@ Monorepo with git submodules:
    - Use Eloquent ORM or Query Builder with parameter bindings
 
 4. **CSRF Protection**
-   - All forms must include CSRF token
-   - Use `@csrf` in Blade templates
-   - For API use `VerifyCsrfToken` middleware
+   - Laravel uses Sanctum for API authentication (token-based)
+   - For SPA/mobile clients: Sanctum automatically handles CSRF via cookies
+   - Ensure `SANCTUM_STATEFUL_DOMAINS` is configured correctly
 
 5. **Access Control and Authorization**
    - Check permissions at every layer (client + server)
@@ -61,9 +60,9 @@ Monorepo with git submodules:
    - Generate random filenames when saving
 
 7. **Session and Authentication Management**
-   - Use secure cookies with `HttpOnly`, `Secure`, `SameSite` flags
-   - Implement session ID rotation after login
-   - Limit session lifetime
+   - API-first: Use Laravel Sanctum with token-based authentication
+   - Use secure cookies with `HttpOnly`, `Secure`, `SameSite` flags for SPA
+   - Implement token expiration and refresh mechanisms
    - Use bcrypt/argon2 for password hashing
 
 8. **Memory Leak Prevention**

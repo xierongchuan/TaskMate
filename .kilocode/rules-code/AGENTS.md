@@ -88,10 +88,11 @@ $tasks = Task::whereRaw("dealership_id = $dealershipId")->get();
 
 - **XSS Prevention**: Escape output in responses
 ```php
-// Use for API JSON responses
-return response()->json(['message' => e($userInput)]);
+// For API JSON responses - Laravel's json() automatically escapes strings
+return response()->json(['message' => $userInput]);
 
-// For Blade templates - automatic, but be careful with {!! !!}
+// If manual escaping needed, use e() helper
+return response()->json(['message' => e($userInput)]);
 ```
 
 - **Command Injection Prevention**: NEVER use `exec()`, `shell_exec()`, `system()` with user input
