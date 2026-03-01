@@ -1,6 +1,6 @@
 ---
-name: test
-description: Запустить backend-тесты Laravel (Pest). Используй /test для всех тестов или /test ClassName для фильтрации.
+name: test-api
+description: Запустить backend API-тесты Laravel (Pest). Используй /test-api для всех тестов или /test-api ClassName для фильтрации.
 argument-hint: "[--filter ClassName]"
 disable-model-invocation: true
 allowed-tools: Bash(podman *)

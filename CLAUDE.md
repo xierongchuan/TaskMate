@@ -48,6 +48,9 @@ podman run --rm -v ./TaskMateClient:/app:z -w /app docker.io/library/node:22-alp
 podman run --rm -v ./TaskMateClient:/app:z -w /app docker.io/library/node:22-alpine npm run lint
 podman run --rm -v ./TaskMateClient:/app:z -w /app docker.io/library/node:22-alpine npm install <package>
 
+# E2E тесты (Playwright) — требует запущенных svc-frontend, svc-api, svc-nginx
+podman run --rm --network host -v ./TaskMateClient:/app:z -w /app mcr.microsoft.com/playwright:v1.58.0-noble npx playwright test
+
 # Deploy
 ./scripts/deploy_prod.sh --pull --init   # первый раз
 ./scripts/deploy_prod.sh --pull          # обновление
@@ -73,7 +76,7 @@ podman run --rm -v ./TaskMateClient:/app:z -w /app docker.io/library/node:22-alp
 1. **Язык:** русский для UI, комментариев, документации. Код на английском.
 2. **Даты:** ТОЛЬКО UTC. Хранение, передача, сравнение — всё в UTC. Backend: `TimeHelper::nowUtc()`, `TimeHelper::toIsoZulu()`. Frontend: `dateTime.ts` утилиты.
 3. **PostgreSQL:** используй COALESCE (не IFNULL), массивы типов с CAST, предпочитай Query Builder vs raw SQL.
-4. **Тесты:** ВСЕГДА `podman compose exec api php artisan test` после backend-изменений. Минимум 50% покрытие.
+4. **Тесты:** ВСЕГДА `podman compose exec api php artisan test` (или `/test-api`) после backend-изменений. Минимум 50% покрытие.
 5. **Docker:** npm/node/composer/php НЕ на хосте. ВСЕ команды — в контейнерах (см. выше).
 6. **Синхронизация:** при изменении API (backend) проверять frontend, и наоборот.
 7. **SOLID:** строгое соблюдение при проектировании.
