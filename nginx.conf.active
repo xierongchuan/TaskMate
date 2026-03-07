@@ -127,6 +127,7 @@ server {
 }
 
 # TaskMate (vfp.andcrm.ru) — HTTPS
+# Используем resolver + переменные, чтобы nginx НЕ падал при недоступности TaskMate
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
@@ -146,8 +147,12 @@ server {
 
     client_max_body_size 220M;
 
+    # Docker DNS resolver — позволяет nginx стартовать даже если upstream ещё не доступен
+    resolver 127.0.0.11 valid=30s ipv6=off;
+
     location / {
-        proxy_pass http://svc-frontend:80;
+        set $tm_frontend http://svc-frontend:80;
+        proxy_pass $tm_frontend;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -155,7 +160,8 @@ server {
     }
 
     location /api {
-        proxy_pass http://svc-api:8000;
+        set $tm_api http://svc-api:8000;
+        proxy_pass $tm_api;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -168,7 +174,8 @@ server {
     }
 
     location /sanctum {
-        proxy_pass http://svc-api:8000;
+        set $tm_api_sanctum http://svc-api:8000;
+        proxy_pass $tm_api_sanctum;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
