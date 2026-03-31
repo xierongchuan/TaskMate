@@ -170,14 +170,15 @@ podman compose exec api php artisan storage:link
 
 ## Технологии
 
-| Frontend | Backend | Infrastructure |
-|----------|---------|----------------|
-| React 19 | Laravel 12 | PostgreSQL 18 |
-| TypeScript 5.9 | PHP 8.4 | Valkey (Redis) |
-| Vite 7 | FrankenPHP | Nginx |
-| Tailwind CSS 3.4 | Pest PHP | Docker |
-| TanStack Query v5 | Sanctum | Supervisor |
-| Zustand | | |
+| Client | Server | Bot | Infrastructure |
+|--------|--------|-----|----------------|
+| React 19 | Laravel 12 | Python 3.12 | PostgreSQL 18.1 |
+| TypeScript 5.9 | PHP 8.4 | aiogram 3 | Valkey 9.0 |
+| Vite 7.3 | FrankenPHP | httpx | RabbitMQ 4 |
+| Tailwind CSS 3.4 | Pest 4 | APScheduler | Nginx 1.27 |
+| TanStack Query v5 | Sanctum 4 | | Certbot 4.0 |
+| Zustand 5 | | | |
+| Capacitor 8 | | | |
 
 ## Структура проекта
 
