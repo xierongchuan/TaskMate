@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(podman compose logs:*)",
+      "WebSearch",
+      "Bash(podman logs:*)",
+      "Bash(podman compose:*)",
+      "Bash(podman run:*)"
+    ]
+  }
+}
