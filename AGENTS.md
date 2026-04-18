@@ -41,15 +41,13 @@ podman run --rm -v ./TaskMateClient:/app:z -w /app docker.io/library/node:22-alp
 podman run --rm --network host -v ./TaskMateClient:/app:z -w /app mcr.microsoft.com/playwright:v1.58.0-noble npx playwright test
 podman run --rm --network host -v ./TaskMateClient:/app:z -w /app mcr.microsoft.com/playwright:v1.58.0-noble npx playwright test dashboard  # single file
 
-# Deploy
-./scripts/deploy_prod.sh --pull --init   # first time
-./scripts/deploy_prod.sh --pull          # update
+
 ```
 
 ## Critical Rules
 
 1. **Docker only** — ALL commands run through containers (see above).
-2. **UTC dates** — Store/transmit/compare in UTC (ISO 8601, Z suffix). Backend: `TimeHelper`, frontend: `dateTime.ts`.
+2. **UTC dates** — Store/transmit/compare in UTC (ISO 8601, Z suffix). Backend: `TimeHelper`, frontend: `dateTime.ts`. Hybrid: moments in UTC, calendar days in dealership timezone.
 3. **PostgreSQL only** — Use COALESCE (not IFNULL), no GROUP BY without aggregation.
 4. **Tests mandatory** — Always run tests after backend changes. Min 50% coverage.
 5. **Language** — Russian for UI, comments, docs. Code in English.
