@@ -13,8 +13,8 @@ x-api-env: &api-env
     QUEUE_CONNECTION: rabbitmq
     RABBITMQ_HOST: rabbitmq
     RABBITMQ_PORT: 5672
-    RABBITMQ_USER: ${RABBITMQ_USER:-taskmate}
-    RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-taskmate_secret}
+    RABBITMQ_USER: ${RABBITMQ_USER}
+    RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
     RABBITMQ_VHOST: ${RABBITMQ_VHOST:-/}
 
 x-worker-base: &worker-base
@@ -63,8 +63,8 @@ services:
         container_name: svc-rabbitmq
         restart: on-failure
         environment:
-            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-taskmate}
-            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-taskmate_secret}
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
             RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
         volumes:
             - rabbitmq_data:/var/lib/rabbitmq
