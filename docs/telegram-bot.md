@@ -196,6 +196,8 @@ async def consume_task_notifications():
 | `RABBITMQ_PASSWORD` | Пароль | `guest` |
 | `LOG_LEVEL` | Уровень логирования | `INFO` |
 
+Примечание: для FSM (многошаговых операций) бот использует Redis/Valkey как хранилище состояний. Убедитесь, что `VALKEY_HOST`/`VALKEY_PORT` настроены и доступны. При необходимости включите Redis-FSM через `VALKEY_FSM_ENABLED=true`.
+
 ## Запуск
 
 ### Через podman compose
