@@ -35,7 +35,8 @@ x-worker-base: &worker-base
         <<: *api-env
     volumes:
         - ./TaskMateServer/.env:/app/.env:z
-        - ./TaskMateServer/storage/app/private:/app/storage/app/private:z
+        - ./TaskMateServer/storage:/app/storage:z
+        - ./TaskMateServer/bootstrap/cache:/app/bootstrap/cache:z
     depends_on:
         postgres:
             condition: service_healthy
@@ -143,7 +144,8 @@ services:
         volumes:
             - ./TaskMateServer/.env:/app/.env:z
             - ./scripts/wait-for-it.sh:/wait-for-it.sh:ro,Z
-            - ./TaskMateServer/storage/app/private:/app/storage/app/private:z
+            - ./TaskMateServer/storage:/app/storage:z
+            - ./TaskMateServer/bootstrap/cache:/app/bootstrap/cache:z
         networks:
             - web
         depends_on:
@@ -176,7 +178,8 @@ services:
             - ./TaskMateServer/.env:/app/.env:z
             - ./TaskMateServer/supervisor.conf:/etc/supervisor/conf.d/supervisor.conf:ro,Z
             - ./TaskMateServer/sync-scheduler.sh:/app/sync-scheduler.sh:ro,Z
-            - ./TaskMateServer/storage/app/private:/app/storage/app/private:z
+            - ./TaskMateServer/storage:/app/storage:z
+            - ./TaskMateServer/bootstrap/cache:/app/bootstrap/cache:z
         depends_on:
             postgres:
                 condition: service_healthy
@@ -206,15 +209,11 @@ services:
     worker-generator:
         <<: *worker-base
         container_name: svc-worker-generator
-        volumes:
-            - ./TaskMateServer/.env:/app/.env:z
         command: [ "/bin/bash", "-c", "rm -f /app/bootstrap/cache/services.php /app/bootstrap/cache/packages.php && php /app/artisan package:discover && exec php /app/artisan queue:work rabbitmq --queue=task_generators --sleep=5 --tries=3 --max-time=3600" ]
 
     worker-shifts:
         <<: *worker-base
         container_name: svc-worker-shifts
-        volumes:
-            - ./TaskMateServer/.env:/app/.env:z
         command: [ "/bin/bash", "-c", "rm -f /app/bootstrap/cache/services.php /app/bootstrap/cache/packages.php && php /app/artisan package:discover && exec php /app/artisan queue:work rabbitmq --queue=shift_auto_close --sleep=5 --tries=3 --max-time=3600" ]
 
     nginx:

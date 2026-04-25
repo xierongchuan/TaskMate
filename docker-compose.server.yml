@@ -27,7 +27,8 @@ x-worker-base: &worker-base
         <<: *api-env
     volumes:
         - ./TaskMateServer/.env:/app/.env:z
-        - taskmate_storage:/app/storage/app/private
+        - ./TaskMateServer/storage:/app/storage:z
+        - ./TaskMateServer/bootstrap/cache:/app/bootstrap/cache:z
     depends_on:
         tm_postgres:
             condition: service_healthy
@@ -122,7 +123,8 @@ services:
             RATE_LIMIT_TRUSTED_IPS: ${RATE_LIMIT_TRUSTED_IPS:-127.0.0.1,172.16.0.0/12}
         volumes:
             - ./TaskMateServer/.env:/app/.env:z
-            - taskmate_storage:/app/storage/app/private
+            - ./TaskMateServer/storage:/app/storage:z
+            - ./TaskMateServer/bootstrap/cache:/app/bootstrap/cache:z
         networks:
             - tm_internal
             - infrastructure_frontend
@@ -153,7 +155,8 @@ services:
             - ./TaskMateServer/.env:/app/.env:z
             - ./TaskMateServer/supervisor.conf:/etc/supervisor/conf.d/supervisor.conf:ro
             - ./TaskMateServer/sync-scheduler.sh:/app/sync-scheduler.sh:ro
-            - taskmate_storage:/app/storage/app/private
+            - ./TaskMateServer/storage:/app/storage:z
+            - ./TaskMateServer/bootstrap/cache:/app/bootstrap/cache:z
         depends_on:
             tm_postgres:
                 condition: service_healthy
@@ -242,7 +245,6 @@ volumes:
     tm_postgres_data:
     tm_valkey_data:
     tm_rabbitmq_data:
-    taskmate_storage:
 
 networks:
     tm_internal:
